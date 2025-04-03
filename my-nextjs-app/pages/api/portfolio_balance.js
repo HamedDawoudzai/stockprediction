@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing portfolio_id parameter' });
   }
 
-  portfolio_id = portfolio_id.trim(); // 🔧 Ensure no whitespace issues
+  portfolio_id = portfolio_id.trim(); 
 
   try {
     const result = await pool.query(

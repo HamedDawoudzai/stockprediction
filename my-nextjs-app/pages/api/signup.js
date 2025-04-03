@@ -7,6 +7,8 @@ const pool = new Pool({
   password: 'abc123',
   port: 5432,
   ssl: false,
+  connectionTimeoutMillis: 10000, 
+  idleTimeoutMillis: 10000,
 });
 
 export default async function handler(req, res) {
@@ -19,14 +21,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
-  // Generate a default portfolio ID (you can modify this logic as needed)
   const defaultPortfolioId = `${username}_base`;
 
   try {
-    // Start a transaction
     await pool.query('BEGIN');
 
-    // Insert the new user into the Users table.
     const insertUserQuery = `
       INSERT INTO Users (user_id, password, first_name, last_name)
       VALUES ($1, $2, $3, $4)
@@ -36,7 +35,6 @@ export default async function handler(req, res) {
     const userResult = await pool.query(insertUserQuery, userValues);
     const newUser = userResult.rows[0];
 
-    // Create the default portfolio for the new user.
     const insertPortfolioQuery = `
       INSERT INTO Portfolios (portfolio_id, user_id, cash_balance)
       VALUES ($1, $2, 0)
@@ -46,7 +44,6 @@ export default async function handler(req, res) {
     const portfolioResult = await pool.query(insertPortfolioQuery, portfolioValues);
     const newPortfolio = portfolioResult.rows[0];
 
-    // Commit the transaction.
     await pool.query('COMMIT');
 
     return res.status(201).json({ 

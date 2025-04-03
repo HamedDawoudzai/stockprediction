@@ -8,6 +8,8 @@ const pool = new Pool({
   password: 'abc123',
   port: 5432,
   ssl: false, 
+  connectionTimeoutMillis: 10000, 
+  idleTimeoutMillis: 10000,
 });
 
 export default async function handler(req, res) {
