@@ -2,9 +2,9 @@
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  user: 'user',
+  user: 'myuser',
   host: '34.29.111.220',
-  database: 'mydb',
+  database: 'stock_prediction',
   password: 'abc123',
   port: 5432,
   ssl: false, 
@@ -12,7 +12,7 @@ const pool = new Pool({
 
 export default async function handler(req, res) {
   try {
-    const result = await pool.query('SELECT * FROM testtbl;');
+    const result = await pool.query('SELECT * FROM stocks_price;');
     res.status(200).json(result.rows);
   } catch (err) {
     console.error('DB error:', err);

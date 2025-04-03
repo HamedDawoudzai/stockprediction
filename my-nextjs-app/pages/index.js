@@ -1,18 +1,15 @@
-import { useEffect, useState } from 'react';
+// pages/index.js
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Home() {
-  const [data, setData] = useState([]);
-
+  const router = useRouter();
+  
   useEffect(() => {
-    fetch('/api/test')
-      .then((res) => res.json())
-      .then((json) => setData(json));
-  }, []);
+    // Redirect to the login page immediately
+    router.replace('/login');
+  }, [router]);
 
-  return (
-    <div>
-      <h1>Test</h1>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  );
+  // Optionally, you can render a loading indicator here while redirecting
+  return null;
 }
