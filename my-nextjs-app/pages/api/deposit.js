@@ -31,21 +31,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    const query = `
-      UPDATE Portfolios
+    // 1) Update the portfolio balance (use lowercase table name)
+    const updatePortfolioQuery = `
+      UPDATE portfolios
       SET cash_balance = cash_balance + $1
       WHERE portfolio_id = $2
       RETURNING cash_balance
     `;
-    const values = [depositAmount, portfolio_id];
-    const result = await pool.query(query, values);
+    const updateValues = [depositAmount, portfolio_id];
+    const updateResult = await pool.query(updatePortfolioQuery, updateValues);
     
-    if (result.rowCount === 0) {
+    if (updateResult.rowCount === 0) {
       res.status(404).json({ error: 'Portfolio not found' });
       return;
     }
     
-    res.status(200).json({ cash_balance: result.rows[0].cash_balance });
+    // 2) Insert a transaction record for the deposit (use lowercase table name)
+    const insertTransactionQuery = `
+      INSERT INTO transactions 
+        (portfolio_id, transaction_type, symbol, shares, price, amount)
+      VALUES
+        ($1, 'deposit', NULL, 0, 0, $2)
+      RETURNING transaction_id
+    `;
+    const insertValues = [portfolio_id, depositAmount];
+    const insertResult = await pool.query(insertTransactionQuery, insertValues);
+    console.log('Inserted transaction ID:', insertResult.rows[0].transaction_id);
+
+    // Return the updated cash balance to the client
+    res.status(200).json({ cash_balance: updateResult.rows[0].cash_balance });
   } catch (error) {
     console.error('DB error:', error);
     res.status(500).json({ error: 'Database update failed', details: error.message });

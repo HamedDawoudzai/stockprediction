@@ -56,7 +56,7 @@ export default function PortfolioPage() {
         const res = await fetch(`/api/portfolio_balance?portfolio_id=${selectedPortfolioId}`, {
           method: 'GET',
           headers: {
-            'Cache-Control': 'no-cache', 
+            'Cache-Control': 'no-cache',
           },
         });
 
@@ -68,7 +68,7 @@ export default function PortfolioPage() {
         } else {
           const errData = await res.json();
           setError(errData.error);
-          setCashBalance(null); 
+          setCashBalance(null);
         }
       } catch (err) {
         if (isMounted) {
@@ -137,6 +137,10 @@ export default function PortfolioPage() {
           </Link>
           <Link href="/create_portfolio" passHref>
             <div style={styles.sideNavItem}>Create Portfolio</div>
+          </Link>
+          {/* New Stocks Navigation Button */}
+          <Link href="/stocks" passHref>
+            <div style={styles.sideNavItem}>Stocks</div>
           </Link>
         </div>
 

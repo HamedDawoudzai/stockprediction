@@ -21,10 +21,10 @@ export default function LoginPage() {
         const data = await res.json();
 
         if (res.ok) {
-          // Save the user's ID (user_id) to localStorage
+          
           localStorage.setItem('user_id', data.user.user_id);
           setMessage(`Logged in as ${username}. Redirecting...`);
-          // Redirect to the portfolio page after successful login
+          
           router.push('/portfolio');
         } else {
           setMessage(`Error: ${data.error}`);
