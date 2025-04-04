@@ -56,7 +56,7 @@ export default function PortfolioPage() {
         const res = await fetch(`/api/portfolio_balance?portfolio_id=${selectedPortfolioId}`, {
           method: 'GET',
           headers: {
-            'Cache-Control': 'no-cache', // 🔧 Prevent caching
+            'Cache-Control': 'no-cache', 
           },
         });
 
@@ -68,7 +68,7 @@ export default function PortfolioPage() {
         } else {
           const errData = await res.json();
           setError(errData.error);
-          setCashBalance(null); // 🔧 Clear old balance on error
+          setCashBalance(null); 
         }
       } catch (err) {
         if (isMounted) {

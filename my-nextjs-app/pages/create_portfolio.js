@@ -7,13 +7,13 @@ export default function CreatePortfolioPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const router = useRouter();
 
-  // On component mount, retrieve the user id from localStorage
+  
   useEffect(() => {
     const storedUser = localStorage.getItem('user_id');
     if (storedUser) {
       setCurrentUser(storedUser);
     } else {
-      // If not logged in, redirect to login page
+   
       router.push('/login');
     }
   }, [router]);
@@ -38,7 +38,7 @@ export default function CreatePortfolioPage() {
       const data = await res.json();
       if (res.ok) {
         setMessage('Portfolio created successfully!');
-        // Optionally, redirect to the portfolio page.
+     
         router.push('/portfolio');
       } else {
         setMessage(`Error: ${data.error}`);

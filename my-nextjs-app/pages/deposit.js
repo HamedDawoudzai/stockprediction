@@ -9,7 +9,7 @@ export default function DepositPage() {
     e.preventDefault();
     const depositAmount = parseFloat(amount);
     if (depositAmount > 0) {
-      // Retrieve the current portfolio id (ensure you have set this in localStorage on the portfolio page)
+      
       const portfolio_id = localStorage.getItem('current_portfolio_id');
       if (!portfolio_id) {
         setMessage('No portfolio selected.');
