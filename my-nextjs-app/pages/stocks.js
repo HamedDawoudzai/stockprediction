@@ -158,7 +158,7 @@ export default function StocksPage() {
               Buy shares of {buyStock?.Symbol}
             </h2>
             <p style={{ marginBottom: '20px' }}>
-              How many dollars would you like to spend?
+              How much would you like to buy?
             </p>
             <p style={{ marginBottom: '20px' }}>Close Price: ${buyStock?.Close}</p>
             <label style={{ display: 'block', marginBottom: '10px' }}>
