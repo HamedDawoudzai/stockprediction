@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1) Update the portfolio balance (use lowercase table name)
+   
     const updatePortfolioQuery = `
       UPDATE portfolios
       SET cash_balance = cash_balance + $1
@@ -46,7 +46,6 @@ export default async function handler(req, res) {
       return;
     }
     
-    // 2) Insert a transaction record for the deposit (use lowercase table name)
     const insertTransactionQuery = `
       INSERT INTO transactions 
         (portfolio_id, transaction_type, symbol, shares, price, amount)
@@ -58,7 +57,7 @@ export default async function handler(req, res) {
     const insertResult = await pool.query(insertTransactionQuery, insertValues);
     console.log('Inserted transaction ID:', insertResult.rows[0].transaction_id);
 
-    // Return the updated cash balance to the client
+    
     res.status(200).json({ cash_balance: updateResult.rows[0].cash_balance });
   } catch (error) {
     console.error('DB error:', error);

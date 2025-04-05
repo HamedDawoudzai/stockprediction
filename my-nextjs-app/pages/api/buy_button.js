@@ -12,7 +12,7 @@ const pool = new Pool({
   idleTimeoutMillis: 10000,
 });
 
-// Helper function to execute queries.
+
 async function query(text, params) {
   const start = Date.now();
   const res = await pool.query(text, params);
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
   const { portfolio_id, symbol, amount, price, calculatedShares } = req.body;
 
-  // Validate input.
+  
   if (
     !portfolio_id ||
     !symbol ||
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Check if the portfolio exists and has enough funds.
+   
     const portfolioQuery = `SELECT cash_balance FROM portfolios WHERE portfolio_id = $1`;
     const portfolioResult = await query(portfolioQuery, [portfolio_id]);
     
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    // 2. Deduct the purchase amount from the portfolio's cash balance.
+   
     const updatePortfolioQuery = `
       UPDATE portfolios 
       SET cash_balance = cash_balance - $1 
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     `;
     await query(updatePortfolioQuery, [amount, portfolio_id]);
 
-    // 3. Insert a record into the transactions table.
+   
     const insertTransactionQuery = `
       INSERT INTO transactions 
       (portfolio_id, transaction_type, symbol, shares, price, amount, transaction_date)
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
       amount,
     ]);
 
-    // 4. Insert into portfoliostocks or update the existing record.
+   
     const totalValue = parseFloat((calculatedShares * price).toFixed(2));
     const updatePortfolioStocksQuery = `
       INSERT INTO portfoliostocks (portfolio_id, symbol, shares, value)
