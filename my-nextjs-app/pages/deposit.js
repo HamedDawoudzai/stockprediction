@@ -9,7 +9,6 @@ export default function DepositPage() {
     e.preventDefault();
     const depositAmount = parseFloat(amount);
     if (depositAmount > 0) {
-      
       const portfolio_id = localStorage.getItem('current_portfolio_id');
       if (!portfolio_id) {
         setMessage('No portfolio selected.');
@@ -23,8 +22,17 @@ export default function DepositPage() {
           body: JSON.stringify({ portfolio_id, amount: depositAmount }),
         });
         if (res.ok) {
-          const data = await res.json();
-          setMessage(`Successfully deposited $${depositAmount}. New balance: $${data.cash_balance}`);
+          // Fetch updated cash balance
+          const cashRes = await fetch(`/api/cash_balance?portfolio_id=${portfolio_id}`);
+          // Fetch total balance (cash + stocks)
+          const totalRes = await fetch(`/api/total_balance?portfolio_id=${portfolio_id}`);
+          if (cashRes.ok && totalRes.ok) {
+            const cashData = await cashRes.json();
+            const totalData = await totalRes.json();
+            setMessage(`Successfully deposited $${depositAmount}. New cash balance: $${cashData.cash_balance}. Total balance (cash + stocks): $${totalData.total_balance}`);
+          } else {
+            setMessage('Deposit succeeded, but error fetching balances.');
+          }
         } else {
           const errData = await res.json();
           setMessage(`Error: ${errData.error}`);
@@ -40,7 +48,6 @@ export default function DepositPage() {
 
   return (
     <div style={styles.container}>
-      {}
       <nav style={styles.sideNav}>
         <Link href="/portfolio" passHref>
           <div style={styles.sideNavItem}>Portfolio</div>
@@ -50,7 +57,6 @@ export default function DepositPage() {
         </Link>
       </nav>
 
-      {}
       <div style={styles.mainContent}>
         <h1 style={styles.heading}>Deposit Funds</h1>
         <form onSubmit={handleDeposit} style={styles.form}>

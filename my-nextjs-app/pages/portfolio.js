@@ -7,10 +7,13 @@ let debounceTimer = null;
 export default function PortfolioPage() {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolioId, setSelectedPortfolioId] = useState('');
-  const [cashBalance, setCashBalance] = useState(null);
+  const [totalBalance, setTotalBalance] = useState(null); // Combined cash + stocks
+  const [cashBalance, setCashBalance] = useState(null); // Only cash balance
+  const [portfolioStocks, setPortfolioStocks] = useState([]); // Stocks in the portfolio
   const [error, setError] = useState('');
   const router = useRouter();
 
+  // Fetch portfolios for the current user
   useEffect(() => {
     const currentUser = localStorage.getItem('user_id');
     if (!currentUser) {
@@ -30,7 +33,6 @@ export default function PortfolioPage() {
             const initialPortfolio = matchedPortfolio || data[0];
 
             setSelectedPortfolioId(initialPortfolio.portfolio_id);
-            setCashBalance(initialPortfolio.cash_balance);
             localStorage.setItem('current_portfolio_id', initialPortfolio.portfolio_id);
           }
         } else {
@@ -46,22 +48,56 @@ export default function PortfolioPage() {
     fetchPortfolios();
   }, [router]);
 
+  // Fetch total balance (cash + stocks) when selected portfolio changes.
   useEffect(() => {
     if (!selectedPortfolioId) return;
 
     let isMounted = true;
 
-    const fetchBalance = async () => {
+    const fetchTotalBalance = async () => {
       try {
-        const res = await fetch(`/api/portfolio_balance?portfolio_id=${selectedPortfolioId}`, {
+        const res = await fetch(`/api/total_balance?portfolio_id=${selectedPortfolioId}`, {
           method: 'GET',
-          headers: {
-            'Cache-Control': 'no-cache',
-          },
+          headers: { 'Cache-Control': 'no-cache' },
         });
-
         if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          setTotalBalance(data.total_balance);
+        } else {
+          const errData = await res.json();
+          setError(errData.error);
+          setTotalBalance(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching total balance:', err);
+          setError('An unexpected error occurred.');
+          setTotalBalance(null);
+        }
+      }
+    };
 
+    fetchTotalBalance();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedPortfolioId]);
+
+  // Fetch only the cash balance when selected portfolio changes.
+  useEffect(() => {
+    if (!selectedPortfolioId) return;
+
+    let isMounted = true;
+
+    const fetchCashBalance = async () => {
+      try {
+        const res = await fetch(`/api/cash_balance?portfolio_id=${selectedPortfolioId}`, {
+          method: 'GET',
+          headers: { 'Cache-Control': 'no-cache' },
+        });
+        if (!isMounted) return;
         if (res.ok) {
           const data = await res.json();
           setCashBalance(data.cash_balance);
@@ -72,14 +108,51 @@ export default function PortfolioPage() {
         }
       } catch (err) {
         if (isMounted) {
-          console.error('Error fetching portfolio balance:', err);
+          console.error('Error fetching cash balance:', err);
           setError('An unexpected error occurred.');
           setCashBalance(null);
         }
       }
     };
 
-    fetchBalance();
+    fetchCashBalance();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedPortfolioId]);
+
+  // Fetch portfolio stocks when selected portfolio changes.
+  useEffect(() => {
+    if (!selectedPortfolioId) return;
+
+    let isMounted = true;
+
+    const fetchPortfolioStocks = async () => {
+      try {
+        const res = await fetch(`/api/portfolio_stocks?portfolio_id=${selectedPortfolioId}`, {
+          method: 'GET',
+          headers: { 'Cache-Control': 'no-cache' },
+        });
+        if (!isMounted) return;
+        if (res.ok) {
+          const data = await res.json();
+          setPortfolioStocks(data);
+        } else {
+          const errData = await res.json();
+          setError(errData.error);
+          setPortfolioStocks([]);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching portfolio stocks:', err);
+          setError('An unexpected error occurred.');
+          setPortfolioStocks([]);
+        }
+      }
+    };
+
+    fetchPortfolioStocks();
 
     return () => {
       isMounted = false;
@@ -98,7 +171,6 @@ export default function PortfolioPage() {
         setError('');
       } else {
         setError('Invalid portfolio selected.');
-        setCashBalance(null);
       }
     }, 100);
   };
@@ -107,6 +179,12 @@ export default function PortfolioPage() {
     localStorage.clear();
     router.push('/login');
   };
+
+  // Calculate total stock value from portfolioStocks
+  const totalStockValue = portfolioStocks.reduce(
+    (acc, stock) => acc + Number(stock.value),
+    0
+  ).toFixed(2);
 
   return (
     <div
@@ -143,7 +221,6 @@ export default function PortfolioPage() {
             <div style={styles.sideNavItem}>Stocks</div>
           </Link>
         </div>
-
         <button onClick={handleLogout} style={styles.logoutButton}>
           Log Out
         </button>
@@ -160,9 +237,11 @@ export default function PortfolioPage() {
         >
           <div>
             <h1 style={{ margin: 0, fontSize: '1.8rem' }}>
-              Total Balance: {cashBalance !== null ? `$${cashBalance}` : '[insert cash balance here]'}
+              Total Balance: {totalBalance !== null ? `$${totalBalance}` : '[insert total balance here]'}
             </h1>
-            <p style={{ margin: 0, color: '#39d39f' }}>[insert balance change here]</p>
+            <p style={{ margin: 0, color: '#39d39f' }}>
+              [Total Balance includes cash + stocks]
+            </p>
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <Link href="/deposit" passHref>
@@ -214,14 +293,29 @@ export default function PortfolioPage() {
           <h2 style={{ marginTop: 0 }}>Cash</h2>
           <p>{cashBalance !== null ? `$${cashBalance}` : '[insert cash balance here]'}</p>
 
-          <h2>Stocks</h2>
-          <p>[insert list of stocks here]</p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={{ marginTop: 0 }}>Rewards & Allocations</h2>
-          <p>[insert reward info here]</p>
-          <p>[insert allocation details here]</p>
+          <h2>Stocks (Value: ${totalStockValue})</h2>
+          {portfolioStocks.length > 0 ? (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={cellStyle}>Symbol</th>
+                  <th style={cellStyle}>Shares</th>
+                  <th style={cellStyle}>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {portfolioStocks.map((stock, index) => (
+                  <tr key={index}>
+                    <td style={cellStyle}>{stock.symbol}</td>
+                    <td style={cellStyle}>{stock.shares}</td>
+                    <td style={cellStyle}>${stock.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No stocks in this portfolio.</p>
+          )}
         </section>
 
         {error && <p style={{ color: '#f00' }}>{error}</p>}
@@ -229,6 +323,11 @@ export default function PortfolioPage() {
     </div>
   );
 }
+
+const cellStyle = {
+  border: '1px solid #333',
+  padding: '8px',
+};
 
 const styles = {
   sideNavItem: {

@@ -17,6 +17,7 @@ export default function StocksPage() {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStock, setBuyStock] = useState(null);
   const [buyDollarAmount, setBuyDollarAmount] = useState('');
+  const [notification, setNotification] = useState(null); // { message: '', type: 'success' or 'error' }
   const router = useRouter();
 
   useEffect(() => {
@@ -50,19 +51,57 @@ export default function StocksPage() {
     setShowBuyModal(true);
   };
 
-  const handleConfirmBuy = () => {
+  // Display notification at the bottom for 3 seconds.
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  // Retrieve the portfolio ID from localStorage and use it in the buy request.
+  const handleConfirmBuy = async () => {
     const amount = parseFloat(buyDollarAmount);
     if (amount && !isNaN(amount) && amount > 0) {
-      const calculatedShares = (amount / buyStock.Close).toFixed(2);
-      console.log(
-        `User wants to spend $${amount} to buy ${calculatedShares} shares of ${buyStock.Symbol} at $${buyStock.Close}`
-      );
-      alert(
-        `You are spending $${amount} to buy approximately ${calculatedShares} shares of ${buyStock.Symbol} at $${buyStock.Close} per share.`
-      );
+      const calculatedShares = parseFloat((amount / buyStock.Close).toFixed(2));
+      
+      // Retrieve portfolio id from localStorage (set in portfolio.js)
+      const portfolioId = localStorage.getItem('current_portfolio_id');
+      console.log('Using portfolio ID:', portfolioId);
+      if (!portfolioId) {
+        showNotification('No portfolio selected. Please create or select a portfolio.', 'error');
+        setShowBuyModal(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/buy_button', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            portfolio_id: portfolioId,
+            symbol: buyStock.Symbol,
+            amount,
+            price: buyStock.Close,
+            calculatedShares,
+          }),
+        });
+        if (res.ok) {
+          showNotification(
+            `Purchase successful: You spent $${amount} to buy ~${calculatedShares} shares of ${buyStock.Symbol}.`,
+            'success'
+          );
+        } else {
+          const errData = await res.json();
+          showNotification(`Purchase denied: ${errData.error}`, 'error');
+        }
+      } catch (err) {
+        console.error('Error during purchase:', err);
+        showNotification('An error occurred during purchase.', 'error');
+      }
       setShowBuyModal(false);
     } else {
-      alert('Please enter a valid dollar amount.');
+      showNotification('Please enter a valid dollar amount.', 'error');
     }
   };
 
@@ -78,6 +117,7 @@ export default function StocksPage() {
         minHeight: '100vh',
         display: 'flex',
         fontFamily: 'sans-serif',
+        position: 'relative',
       }}
     >
       {/* Sidebar Navigation */}
@@ -157,9 +197,7 @@ export default function StocksPage() {
             <h2 style={{ marginBottom: '10px' }}>
               Buy shares of {buyStock?.Symbol}
             </h2>
-            <p style={{ marginBottom: '20px' }}>
-              How much would you like to buy?
-            </p>
+            <p style={{ marginBottom: '20px' }}>How much would you like to buy?</p>
             <p style={{ marginBottom: '20px' }}>Close Price: ${buyStock?.Close}</p>
             <label style={{ display: 'block', marginBottom: '10px' }}>
               Dollar Amount:
@@ -181,6 +219,26 @@ export default function StocksPage() {
           </div>
         </div>
       )}
+
+      {/* Notification Popup */}
+      {notification && (
+        <div style={{ 
+          position: 'fixed', 
+          bottom: '20px', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          backgroundColor: notification.type === 'success' ? '#4CAF50' : '#F44336',
+          color: '#fff',
+          padding: '15px 30px',
+          borderRadius: '25px',
+          boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
+          zIndex: 1100,
+          fontFamily: 'sans-serif',
+          fontSize: '16px'
+        }}>
+          {notification.message}
+        </div>
+      )}
     </div>
   );
 }
@@ -196,7 +254,7 @@ const modalOverlayStyle = {
   left: 0,
   right: 0,
   bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.3)', // lighter overlay
+  backgroundColor: 'rgba(0, 0, 0, 0.3)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -204,13 +262,13 @@ const modalOverlayStyle = {
 };
 
 const modalContentStyle = {
-  backgroundColor: '#222', // dark gray background
+  backgroundColor: '#222',
   color: '#fff',
   borderRadius: '8px',
   padding: '30px',
-  width: '400px', // increased width for better readability
+  width: '400px',
   textAlign: 'center',
-  fontFamily: 'Times New Roman, serif', // change font to Times New Roman
+  fontFamily: 'Times New Roman, serif',
 };
 
 const modalButtonsStyle = {
