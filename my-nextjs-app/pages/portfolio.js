@@ -7,13 +7,13 @@ let debounceTimer = null;
 export default function PortfolioPage() {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolioId, setSelectedPortfolioId] = useState('');
-  const [totalBalance, setTotalBalance] = useState(null); // Combined cash + stocks
-  const [cashBalance, setCashBalance] = useState(null); // Only cash balance
-  const [portfolioStocks, setPortfolioStocks] = useState([]); // Stocks in the portfolio
+  const [totalBalance, setTotalBalance] = useState(null); 
+  const [cashBalance, setCashBalance] = useState(null); 
+  const [portfolioStocks, setPortfolioStocks] = useState([]); 
   const [error, setError] = useState('');
   const router = useRouter();
 
-  // Fetch portfolios for the current user
+ 
   useEffect(() => {
     const currentUser = localStorage.getItem('user_id');
     if (!currentUser) {
@@ -48,7 +48,6 @@ export default function PortfolioPage() {
     fetchPortfolios();
   }, [router]);
 
-  // Fetch total balance (cash + stocks) when selected portfolio changes.
   useEffect(() => {
     if (!selectedPortfolioId) return;
 
@@ -85,7 +84,6 @@ export default function PortfolioPage() {
     };
   }, [selectedPortfolioId]);
 
-  // Fetch only the cash balance when selected portfolio changes.
   useEffect(() => {
     if (!selectedPortfolioId) return;
 
@@ -122,7 +120,7 @@ export default function PortfolioPage() {
     };
   }, [selectedPortfolioId]);
 
-  // Fetch portfolio stocks when selected portfolio changes.
+
   useEffect(() => {
     if (!selectedPortfolioId) return;
 
@@ -180,7 +178,7 @@ export default function PortfolioPage() {
     router.push('/login');
   };
 
-  // Calculate total stock value from portfolioStocks
+  
   const totalStockValue = portfolioStocks.reduce(
     (acc, stock) => acc + Number(stock.value),
     0

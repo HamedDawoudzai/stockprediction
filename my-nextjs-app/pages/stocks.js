@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-// Helper function to format Timestamp as DD-MM-YYYY
+
 function formatDate(timestamp) {
   const date = new Date(timestamp);
   const day = String(date.getDate()).padStart(2, '0');
@@ -17,7 +17,7 @@ export default function StocksPage() {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStock, setBuyStock] = useState(null);
   const [buyDollarAmount, setBuyDollarAmount] = useState('');
-  const [notification, setNotification] = useState(null); // { message: '', type: 'success' or 'error' }
+  const [notification, setNotification] = useState(null); 
   const router = useRouter();
 
   useEffect(() => {
@@ -44,14 +44,14 @@ export default function StocksPage() {
     router.push('/login');
   };
 
-  // When user clicks Buy, open the modal for that specific stock.
+  
   const handleBuy = (stock) => {
     setBuyStock(stock);
     setBuyDollarAmount('');
     setShowBuyModal(true);
   };
 
-  // Display notification at the bottom for 3 seconds.
+ 
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => {
@@ -59,13 +59,12 @@ export default function StocksPage() {
     }, 3000);
   };
 
-  // Retrieve the portfolio ID from localStorage and use it in the buy request.
   const handleConfirmBuy = async () => {
     const amount = parseFloat(buyDollarAmount);
     if (amount && !isNaN(amount) && amount > 0) {
       const calculatedShares = parseFloat((amount / buyStock.Close).toFixed(2));
       
-      // Retrieve portfolio id from localStorage (set in portfolio.js)
+     
       const portfolioId = localStorage.getItem('current_portfolio_id');
       console.log('Using portfolio ID:', portfolioId);
       if (!portfolioId) {

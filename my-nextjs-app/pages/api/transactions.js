@@ -14,14 +14,14 @@ const pool = new Pool({
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    // Get portfolio_id from query parameters
+    
     const { portfolio_id } = req.query;
     if (!portfolio_id) {
       return res.status(400).json({ error: 'Missing portfolio_id query parameter' });
     }
 
     try {
-      // Query the transactions for the specified portfolio
+     
       const query = `
         SELECT *
         FROM transactions
@@ -31,14 +31,13 @@ export default async function handler(req, res) {
       const values = [portfolio_id];
       const result = await pool.query(query, values);
 
-      // Return the results as JSON
+      
       return res.status(200).json(result.rows);
     } catch (error) {
       console.error('DB error:', error);
       return res.status(500).json({ error: 'Database query failed', details: error.message });
     }
   } else {
-    // If the request is not GET, return a 405 error
     res.setHeader('Allow', ['GET']);
     return res.status(405).json({ error: 'Method Not Allowed' });
   }

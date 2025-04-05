@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Reordered the SELECT so that the Symbol comes first, then Timestamp and the rest.
+    
     const query = `
       SELECT DISTINCT ON (symbol)
         symbol AS "Symbol",

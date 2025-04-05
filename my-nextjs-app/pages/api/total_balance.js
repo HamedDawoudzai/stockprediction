@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get cash balance from the portfolios table
+   
     const portfolioQuery = `
       SELECT cash_balance
       FROM portfolios
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     }
     const cashBalance = parseFloat(portfolioResult.rows[0].cash_balance);
 
-    // Get total stocks value from the portfoliostocks table
+    
     const stocksQuery = `
       SELECT COALESCE(SUM(value), 0) AS stocks_total
       FROM portfoliostocks

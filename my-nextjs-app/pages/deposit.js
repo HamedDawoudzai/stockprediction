@@ -22,9 +22,9 @@ export default function DepositPage() {
           body: JSON.stringify({ portfolio_id, amount: depositAmount }),
         });
         if (res.ok) {
-          // Fetch updated cash balance
+         
           const cashRes = await fetch(`/api/cash_balance?portfolio_id=${portfolio_id}`);
-          // Fetch total balance (cash + stocks)
+         
           const totalRes = await fetch(`/api/total_balance?portfolio_id=${portfolio_id}`);
           if (cashRes.ok && totalRes.ok) {
             const cashData = await cashRes.json();
