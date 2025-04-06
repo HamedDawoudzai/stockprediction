@@ -1,0 +1,56 @@
+// pages/api/delete_request_incoming.js
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  user: 'myuser',
+  host: '34.29.111.220',
+  database: 'stock_prediction',
+  password: 'abc123',
+  port: 5432,
+  ssl: false,
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 10000,
+});
+
+async function query(text, params) {
+  const start = Date.now();
+  const res = await pool.query(text, params);
+  const duration = Date.now() - start;
+  console.log('executed query', { text, duration, rows: res.rowCount });
+  return res;
+}
+
+export default async function handler(req, res) {
+  // Only allow PUT requests.
+  if (req.method !== 'PUT') {
+    res.setHeader('Allow', ['PUT']);
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { request_id, receiver_id } = req.body;
+  if (!request_id || !receiver_id) {
+    return res.status(400).json({ error: 'Missing required fields: request_id and receiver_id.' });
+  }
+
+  try {
+    // Set current time (for example, in Canadian time, if needed use toLocaleString)
+    // const now = new Date().toLocaleString('sv', { timeZone: 'America/Toronto' });
+    const now = new Date();
+
+    // Update the friend request: set status to 'rejected' and set response_time.
+    const updateQuery = `
+      UPDATE friendrequests
+      SET status = 'rejected', response_time = $2
+      WHERE request_id = $1 AND receiver_id = $3 AND status = 'pending'
+      RETURNING request_id, sender_id, receiver_id, status, request_time, response_time;
+    `;
+    const result = await query(updateQuery, [request_id, now, receiver_id]);
+    if (!result.rows.length) {
+      return res.status(400).json({ error: 'Friend request not found or already processed.' });
+    }
+    return res.status(200).json({ message: 'Friend request rejected.', request: result.rows[0] });
+  } catch (err) {
+    console.error('Error rejecting friend request:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}

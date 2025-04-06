@@ -7,13 +7,90 @@ let debounceTimer = null;
 export default function PortfolioPage() {
   const [portfolios, setPortfolios] = useState([]);
   const [selectedPortfolioId, setSelectedPortfolioId] = useState('');
-  const [totalBalance, setTotalBalance] = useState(null); 
-  const [cashBalance, setCashBalance] = useState(null); 
-  const [portfolioStocks, setPortfolioStocks] = useState([]); 
+  const [totalBalance, setTotalBalance] = useState(null);
+  const [cashBalance, setCashBalance] = useState(null);
+  const [portfolioStocks, setPortfolioStocks] = useState([]);
   const [error, setError] = useState('');
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [buyStock, setBuyStock] = useState(null);
+  const [buyDollarAmount, setBuyDollarAmount] = useState('');
+  const [showSellModal, setShowSellModal] = useState(false);
+  const [sellStock, setSellStock] = useState(null);
+  const [sellDollarAmount, setSellDollarAmount] = useState('');
+  const [notification, setNotification] = useState(null);
   const router = useRouter();
 
- 
+  // Helper functions to refresh data
+  const refreshTotalBalance = async () => {
+    try {
+      const res = await fetch(`/api/total_balance?portfolio_id=${selectedPortfolioId}`, {
+        method: 'GET',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTotalBalance(data.total_balance);
+      } else {
+        const errData = await res.json();
+        setError(errData.error);
+        setTotalBalance(null);
+      }
+    } catch (err) {
+      console.error('Error fetching total balance:', err);
+      setError('An unexpected error occurred.');
+      setTotalBalance(null);
+    }
+  };
+
+  const refreshCashBalance = async () => {
+    try {
+      const res = await fetch(`/api/cash_balance?portfolio_id=${selectedPortfolioId}`, {
+        method: 'GET',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCashBalance(data.cash_balance);
+      } else {
+        const errData = await res.json();
+        setError(errData.error);
+        setCashBalance(null);
+      }
+    } catch (err) {
+      console.error('Error fetching cash balance:', err);
+      setError('An unexpected error occurred.');
+      setCashBalance(null);
+    }
+  };
+
+  const refreshPortfolioStocks = async () => {
+    try {
+      const res = await fetch(`/api/portfolio_stocks?portfolio_id=${selectedPortfolioId}`, {
+        method: 'GET',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPortfolioStocks(data);
+      } else {
+        const errData = await res.json();
+        setError(errData.error);
+        setPortfolioStocks([]);
+      }
+    } catch (err) {
+      console.error('Error fetching portfolio stocks:', err);
+      setError('An unexpected error occurred.');
+      setPortfolioStocks([]);
+    }
+  };
+
+  // Refresh all portfolio data
+  const refreshPortfolioData = () => {
+    refreshTotalBalance();
+    refreshCashBalance();
+    refreshPortfolioStocks();
+  };
+
   useEffect(() => {
     const currentUser = localStorage.getItem('user_id');
     if (!currentUser) {
@@ -50,111 +127,7 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     if (!selectedPortfolioId) return;
-
-    let isMounted = true;
-
-    const fetchTotalBalance = async () => {
-      try {
-        const res = await fetch(`/api/total_balance?portfolio_id=${selectedPortfolioId}`, {
-          method: 'GET',
-          headers: { 'Cache-Control': 'no-cache' },
-        });
-        if (!isMounted) return;
-        if (res.ok) {
-          const data = await res.json();
-          setTotalBalance(data.total_balance);
-        } else {
-          const errData = await res.json();
-          setError(errData.error);
-          setTotalBalance(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error('Error fetching total balance:', err);
-          setError('An unexpected error occurred.');
-          setTotalBalance(null);
-        }
-      }
-    };
-
-    fetchTotalBalance();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedPortfolioId]);
-
-  useEffect(() => {
-    if (!selectedPortfolioId) return;
-
-    let isMounted = true;
-
-    const fetchCashBalance = async () => {
-      try {
-        const res = await fetch(`/api/cash_balance?portfolio_id=${selectedPortfolioId}`, {
-          method: 'GET',
-          headers: { 'Cache-Control': 'no-cache' },
-        });
-        if (!isMounted) return;
-        if (res.ok) {
-          const data = await res.json();
-          setCashBalance(data.cash_balance);
-        } else {
-          const errData = await res.json();
-          setError(errData.error);
-          setCashBalance(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error('Error fetching cash balance:', err);
-          setError('An unexpected error occurred.');
-          setCashBalance(null);
-        }
-      }
-    };
-
-    fetchCashBalance();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedPortfolioId]);
-
-
-  useEffect(() => {
-    if (!selectedPortfolioId) return;
-
-    let isMounted = true;
-
-    const fetchPortfolioStocks = async () => {
-      try {
-        const res = await fetch(`/api/portfolio_stocks?portfolio_id=${selectedPortfolioId}`, {
-          method: 'GET',
-          headers: { 'Cache-Control': 'no-cache' },
-        });
-        if (!isMounted) return;
-        if (res.ok) {
-          const data = await res.json();
-          setPortfolioStocks(data);
-        } else {
-          const errData = await res.json();
-          setError(errData.error);
-          setPortfolioStocks([]);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error('Error fetching portfolio stocks:', err);
-          setError('An unexpected error occurred.');
-          setPortfolioStocks([]);
-        }
-      }
-    };
-
-    fetchPortfolioStocks();
-
-    return () => {
-      isMounted = false;
-    };
+    refreshPortfolioData();
   }, [selectedPortfolioId]);
 
   const handlePortfolioChange = (e) => {
@@ -178,11 +151,135 @@ export default function PortfolioPage() {
     router.push('/login');
   };
 
-  
   const totalStockValue = portfolioStocks.reduce(
     (acc, stock) => acc + Number(stock.value),
     0
   ).toFixed(2);
+
+  // Notification helper
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  // Buy functionality (already implemented)
+  const handleBuy = (stock) => {
+    const price = stock.shares > 0 ? Number((stock.value / stock.shares).toFixed(2)) : 0;
+    setBuyStock({ ...stock, Close: price });
+    setBuyDollarAmount('');
+    setShowBuyModal(true);
+  };
+
+  const handleConfirmBuy = async () => {
+    const amount = parseFloat(buyDollarAmount);
+    if (amount && !isNaN(amount) && amount > 0) {
+      const calculatedShares = parseFloat((amount / buyStock.Close).toFixed(2));
+      const portfolioId = localStorage.getItem('current_portfolio_id');
+      if (!portfolioId) {
+        showNotification('No portfolio selected. Please create or select a portfolio.', 'error');
+        setShowBuyModal(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/buy_button', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            portfolio_id: portfolioId,
+            symbol: buyStock.symbol,
+            amount,
+            price: buyStock.Close,
+            calculatedShares,
+          }),
+        });
+        if (res.ok) {
+          showNotification(
+            `Purchase successful: You spent $${amount} to buy ~${calculatedShares} shares of ${buyStock.symbol}.`,
+            'success'
+          );
+          refreshPortfolioData();
+        } else {
+          const errData = await res.json();
+          showNotification(`Purchase denied: ${errData.error}`, 'error');
+        }
+      } catch (err) {
+        console.error('Error during purchase:', err);
+        showNotification('An error occurred during purchase.', 'error');
+      }
+      setShowBuyModal(false);
+    } else {
+      showNotification('Please enter a valid dollar amount.', 'error');
+    }
+  };
+
+  const handleCancelBuy = () => {
+    setShowBuyModal(false);
+  };
+
+  // Sell functionality
+  const handleSell = (stock) => {
+    const price = stock.shares > 0 ? Number((stock.value / stock.shares).toFixed(2)) : 0;
+    setSellStock({ ...stock, Close: price });
+    setSellDollarAmount('');
+    setShowSellModal(true);
+  };
+
+  const handleConfirmSell = async () => {
+    const amount = parseFloat(sellDollarAmount);
+    if (amount && !isNaN(amount) && amount > 0) {
+      const calculatedShares = parseFloat((amount / sellStock.Close).toFixed(2));
+      const portfolioId = localStorage.getItem('current_portfolio_id');
+      if (!portfolioId) {
+        showNotification('No portfolio selected. Please create or select a portfolio.', 'error');
+        setShowSellModal(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/sell_button', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            portfolio_id: portfolioId,
+            symbol: sellStock.symbol,
+            amount,
+            price: sellStock.Close,
+            calculatedShares,
+          }),
+        });
+        if (res.ok) {
+          showNotification(
+            `Sale successful: You sold ~$${amount} worth of ${sellStock.symbol} (~${calculatedShares} shares).`,
+            'success'
+          );
+          refreshPortfolioData();
+        } else {
+          const errData = await res.json();
+          showNotification(`Sale denied: ${errData.error}`, 'error');
+        }
+      } catch (err) {
+        console.error('Error during sale:', err);
+        showNotification('An error occurred during sale.', 'error');
+      }
+      setShowSellModal(false);
+    } else {
+      showNotification('Please enter a valid dollar amount.', 'error');
+    }
+  };
+
+  const handleCancelSell = () => {
+    setShowSellModal(false);
+  };
+
+  // Set sell amount to maximum available (i.e. the stock's value)
+  const handleSellMax = () => {
+    if (sellStock && sellStock.value) {
+      setSellDollarAmount(sellStock.value.toString());
+    }
+  };
 
   return (
     <div
@@ -214,9 +311,11 @@ export default function PortfolioPage() {
           <Link href="/create_portfolio" passHref>
             <div style={styles.sideNavItem}>Create Portfolio</div>
           </Link>
-          {/* New Stocks Navigation Button */}
           <Link href="/stocks" passHref>
             <div style={styles.sideNavItem}>Stocks</div>
+          </Link>
+          <Link href="/friends" passHref>
+            <div style={styles.sideNavItem}>Friends</div>
           </Link>
         </div>
         <button onClick={handleLogout} style={styles.logoutButton}>
@@ -299,6 +398,8 @@ export default function PortfolioPage() {
                   <th style={cellStyle}>Symbol</th>
                   <th style={cellStyle}>Shares</th>
                   <th style={cellStyle}>Value</th>
+                  <th style={cellStyle}>Buy</th>
+                  <th style={cellStyle}>Sell</th>
                 </tr>
               </thead>
               <tbody>
@@ -307,6 +408,22 @@ export default function PortfolioPage() {
                     <td style={cellStyle}>{stock.symbol}</td>
                     <td style={cellStyle}>{stock.shares}</td>
                     <td style={cellStyle}>${stock.value}</td>
+                    <td style={{ ...cellStyle, textAlign: 'center' }}>
+                      <button
+                        style={styles.buyButton}
+                        onClick={() => handleBuy(stock)}
+                      >
+                        Buy
+                      </button>
+                    </td>
+                    <td style={{ ...cellStyle, textAlign: 'center' }}>
+                      <button
+                        style={styles.sellButton}
+                        onClick={() => handleSell(stock)}
+                      >
+                        Sell
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -318,6 +435,72 @@ export default function PortfolioPage() {
 
         {error && <p style={{ color: '#f00' }}>{error}</p>}
       </main>
+
+      {/* Buy Modal */}
+      {showBuyModal && buyStock && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h2 style={{ marginBottom: '10px' }}>Buy shares of {buyStock.symbol}</h2>
+            <p style={{ marginBottom: '20px' }}>How much would you like to invest?</p>
+            <p style={{ marginBottom: '20px' }}>Close Price: ${buyStock.Close}</p>
+            <label style={{ display: 'block', marginBottom: '10px' }}>
+              Dollar Amount:
+              <input
+                type="number"
+                value={buyDollarAmount}
+                onChange={(e) => setBuyDollarAmount(e.target.value)}
+                style={inputStyle}
+              />
+            </label>
+            <div style={modalButtonsStyle}>
+              <button onClick={handleConfirmBuy} style={styles.buyButton}>
+                Confirm
+              </button>
+              <button onClick={handleCancelBuy} style={styles.cancelButton}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sell Modal */}
+      {showSellModal && sellStock && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h2 style={{ marginBottom: '10px' }}>Sell shares of {sellStock.symbol}</h2>
+            <p style={{ marginBottom: '20px' }}>How much would you like to sell?</p>
+            <p style={{ marginBottom: '20px' }}>Close Price: ${sellStock.Close}</p>
+            <label style={{ display: 'block', marginBottom: '10px' }}>
+              Dollar Amount:
+              <input
+                type="number"
+                value={sellDollarAmount}
+                onChange={(e) => setSellDollarAmount(e.target.value)}
+                style={inputStyle}
+              />
+            </label>
+            <div style={modalButtonsStyle}>
+              <button onClick={handleSellMax} style={styles.maxButton}>
+                Max
+              </button>
+              <button onClick={handleConfirmSell} style={styles.sellButton}>
+                Confirm
+              </button>
+              <button onClick={handleCancelSell} style={styles.cancelButton}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Popup */}
+      {notification && (
+        <div style={notificationStyle(notification.type)}>
+          {notification.message}
+        </div>
+      )}
     </div>
   );
 }
@@ -326,6 +509,57 @@ const cellStyle = {
   border: '1px solid #333',
   padding: '8px',
 };
+
+const modalOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1000,
+};
+
+const modalContentStyle = {
+  backgroundColor: '#222',
+  color: '#fff',
+  borderRadius: '8px',
+  padding: '30px',
+  width: '400px',
+  textAlign: 'center',
+};
+
+const modalButtonsStyle = {
+  marginTop: '20px',
+  display: 'flex',
+  justifyContent: 'space-around',
+};
+
+const inputStyle = {
+  marginTop: '10px',
+  padding: '8px',
+  width: '90%',
+  borderRadius: '4px',
+  border: '1px solid #ccc',
+};
+
+const notificationStyle = (type) => ({
+  position: 'fixed',
+  bottom: '20px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  backgroundColor: type === 'success' ? '#4CAF50' : '#F44336',
+  color: '#fff',
+  padding: '15px 30px',
+  borderRadius: '25px',
+  boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
+  zIndex: 1100,
+  fontFamily: 'sans-serif',
+  fontSize: '16px'
+});
 
 const styles = {
   sideNavItem: {
@@ -369,5 +603,37 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  buyButton: {
+    backgroundColor: 'green',
+    color: '#fff',
+    border: 'none',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  cancelButton: {
+    backgroundColor: '#ccc',
+    color: '#000',
+    border: 'none',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  sellButton: {
+    backgroundColor: 'red',
+    color: '#fff',
+    border: 'none',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  maxButton: {
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    border: 'none',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
   },
 };
