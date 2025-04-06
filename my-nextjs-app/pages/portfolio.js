@@ -20,7 +20,6 @@ export default function PortfolioPage() {
   const [notification, setNotification] = useState(null);
   const router = useRouter();
 
-  // Helper functions to refresh data
   const refreshTotalBalance = async () => {
     try {
       const res = await fetch(`/api/total_balance?portfolio_id=${selectedPortfolioId}`, {
@@ -84,7 +83,6 @@ export default function PortfolioPage() {
     }
   };
 
-  // Refresh all portfolio data
   const refreshPortfolioData = () => {
     refreshTotalBalance();
     refreshCashBalance();
@@ -156,7 +154,6 @@ export default function PortfolioPage() {
     0
   ).toFixed(2);
 
-  // Notification helper
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => {
@@ -164,7 +161,6 @@ export default function PortfolioPage() {
     }, 3000);
   };
 
-  // Buy functionality (already implemented)
   const handleBuy = (stock) => {
     const price = stock.shares > 0 ? Number((stock.value / stock.shares).toFixed(2)) : 0;
     setBuyStock({ ...stock, Close: price });
@@ -219,7 +215,6 @@ export default function PortfolioPage() {
     setShowBuyModal(false);
   };
 
-  // Sell functionality
   const handleSell = (stock) => {
     const price = stock.shares > 0 ? Number((stock.value / stock.shares).toFixed(2)) : 0;
     setSellStock({ ...stock, Close: price });
@@ -274,7 +269,6 @@ export default function PortfolioPage() {
     setShowSellModal(false);
   };
 
-  // Set sell amount to maximum available (i.e. the stock's value)
   const handleSellMax = () => {
     if (sellStock && sellStock.value) {
       setSellDollarAmount(sellStock.value.toString());
@@ -344,7 +338,12 @@ export default function PortfolioPage() {
             <Link href="/deposit" passHref>
               <button style={styles.whiteButton}>Deposit</button>
             </Link>
-            <button style={styles.whiteButton}>Transfer</button>
+            <Link href="/transfer" passHref>
+              <button style={styles.whiteButton}>Transfer</button>
+            </Link>
+            <Link href="/withdraw" passHref>
+              <button style={styles.whiteButton}>Withdraw</button>
+            </Link>
           </div>
         </header>
 
