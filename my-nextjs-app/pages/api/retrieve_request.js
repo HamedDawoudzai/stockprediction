@@ -25,7 +25,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // You can filter by sender_id or receiver_id via query parameters.
   const { sender_id, receiver_id } = req.query;
   let baseQuery = 'SELECT * FROM friendrequests';
   const conditions = [];

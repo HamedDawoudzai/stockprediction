@@ -21,7 +21,7 @@ async function query(text, params) {
 }
 
 export default async function handler(req, res) {
-  // Only accept PUT requests.
+  
   if (req.method !== 'PUT') {
     res.setHeader('Allow', ['PUT']);
     return res.status(405).json({ error: 'Method not allowed' });
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Retrieve the friend request to ensure it exists and is still pending.
+   
     const selectQuery = `
       SELECT sender_id 
       FROM friendrequests 
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     const sender_id = selectResult.rows[0].sender_id;
     const now = new Date();
 
-    // Update the friend request record to "accepted" and set response_time.
+   
     const updateQuery = `
       UPDATE friendrequests
       SET status = 'accepted', response_time = $2
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     `;
     const updateResult = await query(updateQuery, [request_id, now]);
 
-    // Insert mutual friendship records (both directions).
+    
     const insertFriendshipQuery = `
       INSERT INTO friendships (user_id, friend_id, established_at)
       VALUES ($1, $2, $3), ($2, $1, $3)

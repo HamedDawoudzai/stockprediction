@@ -4,9 +4,9 @@ import { useRouter } from 'next/router';
 
 export default function FriendsPage() {
   const [activeTab, setActiveTab] = useState('friends');
-  const [friendData, setFriendData] = useState([]); // list of current friends (from friendships join users)
-  const [outgoingRequests, setOutgoingRequests] = useState([]); // outgoing friend requests (pending)
-  const [incomingRequests, setIncomingRequests] = useState([]); // incoming friend requests (pending)
+  const [friendData, setFriendData] = useState([]); 
+  const [outgoingRequests, setOutgoingRequests] = useState([]); 
+  const [incomingRequests, setIncomingRequests] = useState([]); 
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [newFriendId, setNewFriendId] = useState('');
   const [error, setError] = useState('');
@@ -19,7 +19,7 @@ export default function FriendsPage() {
     fetchIncomingRequests();
   }, []);
 
-  // Fetch friend list from get_friends endpoint.
+
   const fetchFriends = async () => {
     const user_id = localStorage.getItem('user_id');
     if (!user_id) return;
@@ -99,7 +99,7 @@ export default function FriendsPage() {
         fetchOutgoingRequests();
       } else {
         const errData = await res.json();
-        // Check for custom popup error.
+   
         if (errData.popupType === 'custom') {
           showNotification(errData.error, 'custom');
         } else if (errData.error === 'Duplicate request exists') {
@@ -116,7 +116,7 @@ export default function FriendsPage() {
     setNewFriendId('');
   };
 
-  // Delete friend from friendships table.
+ 
   const handleDeleteFriend = async (friend_id) => {
     const user_id = localStorage.getItem('user_id');
     try {
@@ -138,7 +138,7 @@ export default function FriendsPage() {
     }
   };
 
-  // Delete outgoing friend request (sender cancels their own request)
+
   const handleDeleteOutgoing = async (request_id) => {
     const sender_id = localStorage.getItem('user_id');
     try {
@@ -160,7 +160,7 @@ export default function FriendsPage() {
     }
   };
 
-  // Reject incoming friend request (update status to rejected and set response_time)
+ 
   const handleDeleteIncoming = async (request_id) => {
     const receiver_id = localStorage.getItem('user_id');
     try {
@@ -182,7 +182,7 @@ export default function FriendsPage() {
     }
   };
 
-  // Accept incoming friend request (update status to accepted and create friendship)
+  
   const handleAcceptRequest = async (request_id) => {
     const receiver_id = localStorage.getItem('user_id');
     try {

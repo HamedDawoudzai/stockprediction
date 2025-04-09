@@ -32,7 +32,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Delete both rows to remove mutual friendship.
+ 
     const deleteQuery = `
       DELETE FROM friendships 
       WHERE (user_id = $1 AND friend_id = $2)

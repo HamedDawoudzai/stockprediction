@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields: sender_id and receiver_id.' });
   }
 
-  // Prevent users from adding themselves.
+  
   if (sender_id === receiver_id) {
     return res.status(400).json({ 
       error: "You can't add yourself", 
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Check if the receiver exists in the users table.
+   
     const checkUserQuery = `SELECT * FROM users WHERE user_id = $1`;
     const userResult = await query(checkUserQuery, [receiver_id]);
     if (!userResult.rows.length) {
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Check if the sender is already friends with the receiver.
+    
     const friendshipQuery = `
       SELECT * FROM friendships
       WHERE user_id = $1 AND friend_id = $2
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Check for an existing pending friend request to avoid duplicates.
+    
     const duplicateQuery = `
       SELECT * FROM friendrequests 
       WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending'
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Duplicate request exists" });
     }
 
-    // Check for a recent rejected request.
+  
     const rejectedQuery = `
       SELECT response_time 
       FROM friendrequests 
@@ -83,7 +83,6 @@ export default async function handler(req, res) {
     `;
     const rejectedResult = await query(rejectedQuery, [sender_id, receiver_id]);
 
-    // Get the current Canadian time as a near-ISO string.
     const nowStr = new Date().toLocaleString('sv', { timeZone: 'America/Toronto' });
     const now = new Date(nowStr);
     if (rejectedResult.rows.length > 0) {
@@ -99,7 +98,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Insert the friend request, explicitly providing the request_time.
     const insertQuery = `
       INSERT INTO friendrequests (sender_id, receiver_id, status, request_time)
       VALUES ($1, $2, 'pending', $3)

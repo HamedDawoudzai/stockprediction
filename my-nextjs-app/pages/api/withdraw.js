@@ -32,10 +32,10 @@ export default async function handler(req, res) {
 
   const client = await pool.connect();
   try {
-    // Start transaction
+    
     await client.query('BEGIN');
 
-    // Retrieve current cash balance
+   
     const portfolioQuery = 'SELECT cash_balance FROM portfolios WHERE portfolio_id = $1';
     const portfolioResult = await client.query(portfolioQuery, [portfolio_id]);
     if (portfolioResult.rowCount === 0) {
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Update the portfolio's cash_balance
+ 
     const updatePortfolioQuery = `
       UPDATE portfolios
       SET cash_balance = cash_balance - $1
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Record the withdrawal transaction
+
     const insertTransactionQuery = `
       INSERT INTO transactions 
         (portfolio_id, transaction_type, symbol, shares, price, amount)
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     const insertResult = await client.query(insertTransactionQuery, insertValues);
     console.log('Inserted transaction ID:', insertResult.rows[0].transaction_id);
 
-    // Commit transaction
+
     await client.query('COMMIT');
 
     res.status(200).json({ cash_balance: updateResult.rows[0].cash_balance });

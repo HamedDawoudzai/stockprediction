@@ -36,10 +36,9 @@ export default async function handler(req, res) {
 
   const client = await pool.connect();
   try {
-    // Begin transaction
     await client.query('BEGIN');
 
-    // Retrieve the current cash balance from the source portfolio
+
     const fromQuery = 'SELECT cash_balance FROM portfolios WHERE portfolio_id = $1';
     const fromResult = await client.query(fromQuery, [from_portfolio_id]);
     if (fromResult.rowCount === 0) {
@@ -54,7 +53,6 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Ensure the destination portfolio exists
     const toQuery = 'SELECT cash_balance FROM portfolios WHERE portfolio_id = $1';
     const toResult = await client.query(toQuery, [to_portfolio_id]);
     if (toResult.rowCount === 0) {
@@ -63,7 +61,6 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Update the source portfolio: subtract the transfer amount
     const updateFromQuery = `
       UPDATE portfolios
       SET cash_balance = cash_balance - $1
@@ -72,7 +69,7 @@ export default async function handler(req, res) {
     `;
     const updateFromResult = await client.query(updateFromQuery, [transferAmount, from_portfolio_id]);
 
-    // Update the destination portfolio: add the transfer amount
+
     const updateToQuery = `
       UPDATE portfolios
       SET cash_balance = cash_balance + $1
@@ -81,7 +78,6 @@ export default async function handler(req, res) {
     `;
     const updateToResult = await client.query(updateToQuery, [transferAmount, to_portfolio_id]);
 
-    // Record a transfer transaction for the source portfolio
     const insertWithdrawTx = `
       INSERT INTO transactions
         (portfolio_id, transaction_type, symbol, shares, price, amount)
@@ -91,7 +87,6 @@ export default async function handler(req, res) {
     `;
     await client.query(insertWithdrawTx, [from_portfolio_id, transferAmount]);
 
-    // Record a transfer transaction for the destination portfolio
     const insertDepositTx = `
       INSERT INTO transactions
         (portfolio_id, transaction_type, symbol, shares, price, amount)
@@ -101,7 +96,6 @@ export default async function handler(req, res) {
     `;
     await client.query(insertDepositTx, [to_portfolio_id, transferAmount]);
 
-    // Commit the transaction
     await client.query('COMMIT');
 
     res.status(200).json({

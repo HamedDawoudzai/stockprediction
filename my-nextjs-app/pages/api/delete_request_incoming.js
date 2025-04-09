@@ -21,7 +21,7 @@ async function query(text, params) {
 }
 
 export default async function handler(req, res) {
-  // Only allow PUT requests.
+  
   if (req.method !== 'PUT') {
     res.setHeader('Allow', ['PUT']);
     return res.status(405).json({ error: 'Method not allowed' });
@@ -33,11 +33,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Set current time (for example, in Canadian time, if needed use toLocaleString)
-    // const now = new Date().toLocaleString('sv', { timeZone: 'America/Toronto' });
+    
     const now = new Date();
-
-    // Update the friend request: set status to 'rejected' and set response_time.
     const updateQuery = `
       UPDATE friendrequests
       SET status = 'rejected', response_time = $2
