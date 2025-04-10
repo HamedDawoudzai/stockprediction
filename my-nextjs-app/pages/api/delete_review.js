@@ -34,7 +34,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Retrieve the creator of the stock list from the StockLists table.
     const stockListQuery = `
       SELECT creator_id
       FROM StockLists
@@ -46,12 +45,10 @@ export default async function handler(req, res) {
     }
     const { creator_id } = result.rows[0];
 
-    // Authorization: Allow deletion if the requester is either the reviewer or the creator of the stock list.
     if (user_id !== reviewer_id && user_id !== creator_id) {
       return res.status(403).json({ error: 'Not authorized to delete this review' });
     }
 
-    // Delete the review
     const deleteQuery = `
       DELETE FROM Reviews
       WHERE reviewer_id = $1 AND stock_list_id = $2

@@ -11,7 +11,6 @@ const pool = new Pool({
   idleTimeoutMillis: 10000,
 });
 
-// Helper function to execute queries with logging.
 async function query(text, params) {
   const start = Date.now();
   const res = await pool.query(text, params);
@@ -32,13 +31,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing stock_list_id, new_status, or user_id.' });
   }
   
-  // Validate new_status to be either 'public' or 'private'
+  
   if (new_status !== 'public' && new_status !== 'private') {
     return res.status(400).json({ error: 'Invalid new_status. Must be "public" or "private".' });
   }
   
   try {
-    // Verify ownership by fetching the stock list.
     const fetchQuery = `SELECT creator_id FROM StockLists WHERE stock_list_id = $1;`;
     const fetchResult = await query(fetchQuery, [stock_list_id]);
     if (fetchResult.rowCount === 0) {
@@ -50,7 +48,6 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Not authorized: only the owner can change the status.' });
     }
     
-    // Update the status.
     const updateQuery = `
       UPDATE StockLists 
       SET visibility = $1 
@@ -62,8 +59,6 @@ export default async function handler(req, res) {
     if (updateResult.rowCount === 0) {
       return res.status(404).json({ error: 'Stock list not found during update.' });
     }
-    
-    // If the stock list is now public, remove all entries from StockListShares.
     if (new_status === 'public') {
       const deleteSharesQuery = `
         DELETE FROM StockListShares

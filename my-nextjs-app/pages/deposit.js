@@ -22,9 +22,7 @@ export default function DepositPage() {
           body: JSON.stringify({ portfolio_id, amount: depositAmount }),
         });
         if (res.ok) {
-         
           const cashRes = await fetch(`/api/cash_balance?portfolio_id=${portfolio_id}`);
-         
           const totalRes = await fetch(`/api/total_balance?portfolio_id=${portfolio_id}`);
           if (cashRes.ok && totalRes.ok) {
             const cashData = await cashRes.json();
@@ -63,7 +61,8 @@ export default function DepositPage() {
           <label style={styles.label}>Deposit Amount (USD):</label>
           <input
             type="number"
-            min="1"
+            min="0.01"
+            step="any"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             style={styles.input}

@@ -24,29 +24,60 @@ export default async function handler(req, res) {
   const { method } = req;
 
   if (method === 'GET') {
-    // Retrieve reviews for a specific stock_list_id
-    const { stock_list_id } = req.query;
-    if (!stock_list_id) {
-      return res.status(400).json({ error: 'Missing required query parameter: stock_list_id' });
+    const { stock_list_id, user_id } = req.query;
+    if (!stock_list_id || !user_id) {
+      return res
+        .status(400)
+        .json({ error: 'Missing required query parameters: stock_list_id and user_id' });
     }
+
     try {
-      const queryText = `
-        SELECT reviewer_id, stock_list_id, subject, review_text, created_at
-        FROM Reviews
-        WHERE stock_list_id = $1
-        ORDER BY created_at DESC
-      `;
-      const { rows } = await query(queryText, [stock_list_id]);
+      // Fetch the creator's ID for the stock list.
+      const creatorRes = await query(
+        `SELECT creator_id FROM StockLists WHERE stock_list_id = $1`,
+        [stock_list_id]
+      );
+
+      if (creatorRes.rowCount === 0) {
+        return res.status(404).json({ error: 'Stock list not found' });
+      }
+
+      const creator_id = creatorRes.rows[0].creator_id;
+      let reviewQuery;
+      let values;
+
+      if (user_id === creator_id) {
+        // If the current user is the creator, return all reviews.
+        reviewQuery = `
+          SELECT reviewer_id, stock_list_id, subject, review_text, created_at
+          FROM Reviews
+          WHERE stock_list_id = $1
+          ORDER BY created_at DESC
+        `;
+        values = [stock_list_id];
+      } else {
+        // Otherwise, return only the creator's review and the current user's review.
+        reviewQuery = `
+          SELECT reviewer_id, stock_list_id, subject, review_text, created_at
+          FROM Reviews
+          WHERE stock_list_id = $1 AND (reviewer_id = $2 OR reviewer_id = $3)
+          ORDER BY created_at DESC
+        `;
+        values = [stock_list_id, user_id, creator_id];
+      }
+
+      const { rows } = await query(reviewQuery, values);
       return res.status(200).json({ reviews: rows });
     } catch (error) {
       console.error('Error fetching reviews:', error);
       return res.status(500).json({ error: 'Error fetching reviews' });
     }
   } else if (method === 'POST') {
-    // Add or update a review for a given reviewer_id and stock_list_id.
     const { reviewer_id, stock_list_id, subject, review_text } = req.body;
     if (!reviewer_id || !stock_list_id || !subject || !review_text) {
-      return res.status(400).json({ error: 'Missing required fields: reviewer_id, stock_list_id, subject, review_text' });
+      return res
+        .status(400)
+        .json({ error: 'Missing required fields: reviewer_id, stock_list_id, subject, review_text' });
     }
     try {
       const insertQuery = `
@@ -56,7 +87,6 @@ export default async function handler(req, res) {
       await query(insertQuery, [reviewer_id, stock_list_id, subject, review_text]);
       return res.status(201).json({ message: 'Review added successfully' });
     } catch (error) {
-      // PostgreSQL duplicate key error
       if (error.code === '23505') {
         try {
           const updateQuery = `

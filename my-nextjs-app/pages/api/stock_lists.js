@@ -12,7 +12,6 @@ const pool = new Pool({
   idleTimeoutMillis: 10000,
 });
 
-// Helper function to execute SQL queries with basic logging.
 async function query(text, params) {
   const start = Date.now();
   const res = await pool.query(text, params);
@@ -29,7 +28,7 @@ export default async function handler(req, res) {
 
   const { filter, user_id } = req.query;
 
-  // For private and shared lists, user_id is required.
+
   if ((filter === 'private' || filter === 'shared') && !user_id) {
     return res.status(400).json({
       error: 'Missing user_id query parameter for this filter.'
@@ -39,9 +38,6 @@ export default async function handler(req, res) {
   try {
     let queryText = '';
     let queryParams = [];
-
-    // We'll use a correlated subquery with string_agg to fetch the shared user IDs as a
-    // comma-separated string for each stock list.
     if (filter === 'public') {
       queryText = `
         SELECT 
@@ -77,9 +73,6 @@ export default async function handler(req, res) {
       `;
       queryParams = [user_id];
     } else if (filter === 'shared') {
-      // For shared lists, we want stock lists where:
-      // - The list has visibility 'shared'
-      // - AND either the current user is the creator OR the list is shared with the current user.
       queryText = `
         SELECT 
           sl.stock_list_id,
@@ -111,13 +104,12 @@ export default async function handler(req, res) {
 
     const result = await query(queryText, queryParams);
 
-    // Map the rows to a consistent structure for the front end.
     const lists = result.rows.map((row) => ({
       stock_list_id: row.stock_list_id,
       description: row.description,
       visibility: row.visibility,
       creator_id: row.creator_id,
-      shared_with: row.shared_with, // this is now a comma-separated string (or empty string)
+      shared_with: row.shared_with,
     }));
 
     return res.status(200).json({ lists });

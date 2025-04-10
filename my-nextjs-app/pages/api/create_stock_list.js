@@ -17,12 +17,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // Expecting the request body to include:
-  // - title (which will be used as stock_list_id)
-  // - description
-  // - visibility
-  // - user (the creator's id)
-  // - stocks: an array of objects { symbol, shares }
   const { title, description, visibility, user, stocks } = req.body;
 
   if (!title || !user) {
@@ -33,7 +27,6 @@ export default async function handler(req, res) {
   try {
     await client.query('BEGIN');
 
-    // Use the title as stock_list_id.
     const insertStockListQuery = `
       INSERT INTO StockLists (stock_list_id, description, visibility, creator_id)
       VALUES ($1, $2, $3, $4)
@@ -48,12 +41,11 @@ export default async function handler(req, res) {
 
     const stock_list_id = stockListResult.rows[0].stock_list_id;
 
-    // Aggregate stocks by symbol and sum the shares.
+ 
     if (stocks && Array.isArray(stocks)) {
       const aggregatedStocks = {};
       for (const stock of stocks) {
         if (stock.symbol && stock.shares) {
-          // If the symbol already exists in our map, sum up the shares.
           if (aggregatedStocks[stock.symbol]) {
             aggregatedStocks[stock.symbol] += Number(stock.shares);
           } else {
@@ -62,7 +54,7 @@ export default async function handler(req, res) {
         }
       }
 
-      // Insert the aggregated stock values into StockListItems.
+      
       for (const symbol in aggregatedStocks) {
         const shares = aggregatedStocks[symbol];
         const insertItemQuery = `

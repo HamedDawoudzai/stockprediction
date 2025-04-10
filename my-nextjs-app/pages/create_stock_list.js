@@ -5,11 +5,11 @@ import { useRouter } from 'next/router';
 export default function CreateStockListPage() {
   const [stockListTitle, setStockListTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [visibility, setVisibility] = useState('private'); // default visibility
+  const [visibility, setVisibility] = useState('private'); 
   const [message, setMessage] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const [availableStocks, setAvailableStocks] = useState([]);
-  const [stockEntries, setStockEntries] = useState([]); // Each entry: { symbol, shares }
+  const [stockEntries, setStockEntries] = useState([]); 
   const [newStockSymbol, setNewStockSymbol] = useState('');
   const [newStockShares, setNewStockShares] = useState('');
   const router = useRouter();
@@ -24,13 +24,13 @@ export default function CreateStockListPage() {
   }, [router]);
 
   useEffect(() => {
-    // Fetch available stocks from the new endpoint: /api/stocks_for_adding
+    
     async function fetchStocks() {
       try {
         const res = await fetch('/api/stocks_for_adding');
         if (res.ok) {
           const stocks = await res.json();
-          console.log('Fetched stocks:', stocks); // Debug: check the fetched stocks in the console
+          console.log('Fetched stocks:', stocks); 
           setAvailableStocks(stocks);
           if (stocks.length > 0) {
             setNewStockSymbol(stocks[0].symbol);
@@ -44,8 +44,6 @@ export default function CreateStockListPage() {
     }
     fetchStocks();
   }, []);
-
-  // Handler to add a new stock entry to the list.
   const handleAddStock = (e) => {
     e.preventDefault();
     if (!newStockSymbol || !newStockShares || isNaN(newStockShares)) {
@@ -82,7 +80,7 @@ export default function CreateStockListPage() {
           description,
           visibility,
           user: currentUser,
-          stocks: stockEntries,  // Array of stock entries { symbol, shares }
+          stocks: stockEntries, 
         }),
       });
       const data = await res.json();

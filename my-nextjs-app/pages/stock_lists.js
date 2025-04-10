@@ -3,28 +3,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 export default function StockListsPage() {
-  // Tab and list states
   const [activeTab, setActiveTab] = useState('public');
   const [stockLists, setStockLists] = useState([]);
-  const [selectedList, setSelectedList] = useState(null); // For main modal details
-  const [modalTab, setModalTab] = useState('stocks'); // stocks/statistics/share/delete/review
-  const [listItems, setListItems] = useState([]); // Items for selected stock list
+  const [selectedList, setSelectedList] = useState(null);
+  const [modalTab, setModalTab] = useState('stocks');
+  const [listItems, setListItems] = useState([]);
   const [shareUserId, setShareUserId] = useState('');
-  const [notification, setNotification] = useState(null); // { message, type }
+  const [notification, setNotification] = useState(null);
   const [currentUserId, setCurrentUserId] = useState('');
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [statusTargetList, setStatusTargetList] = useState(null);
 
-  // State for the review tab
-  const [reviewTab, setReviewTab] = useState('current'); // 'current' or 'add'
+  const [reviewTab, setReviewTab] = useState('current');
   const [currentReviews, setCurrentReviews] = useState([]);
   const [reviewSubject, setReviewSubject] = useState('');
   const [reviewText, setReviewText] = useState('');
 
   const router = useRouter();
 
-  // Get current user id from localStorage on mount
   useEffect(() => {
     const user = localStorage.getItem('user_id');
     setCurrentUserId(user || '');
@@ -35,7 +32,6 @@ export default function StockListsPage() {
     router.push('/login');
   };
 
-  // Helper: Notification function
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => {
@@ -43,7 +39,6 @@ export default function StockListsPage() {
     }, 3000);
   };
 
-  // Fetch stock lists based on activeTab; for private/shared lists, include user_id.
   const fetchStockLists = async (listType) => {
     try {
       let apiUrl = `/api/stock_lists?filter=${listType}`;
@@ -68,26 +63,22 @@ export default function StockListsPage() {
     fetchStockLists(activeTab);
   }, [activeTab, currentUserId]);
 
-  // Open modal when a list card is clicked.
   const openModal = (list) => {
     setSelectedList(list);
-    setModalTab('stocks'); // default modal tab
+    setModalTab('stocks');
     setShareUserId('');
-    // Reset review states
     setReviewTab('current');
     setCurrentReviews([]);
     setReviewSubject('');
     setReviewText('');
   };
 
-  // Close modal
   const closeModal = () => {
     setSelectedList(null);
     setListItems([]);
     setShareUserId('');
   };
 
-  // Fetch stock list items for the selected list when modalTab is "stocks"
   useEffect(() => {
     const fetchItemsForList = async () => {
       if (selectedList && modalTab === 'stocks') {
@@ -109,12 +100,14 @@ export default function StockListsPage() {
     fetchItemsForList();
   }, [selectedList, modalTab]);
 
-  // Fetch reviews when the Review modal tab is active and the 'current' review sub-tab is selected
   useEffect(() => {
     const fetchReviews = async () => {
       if (selectedList && modalTab === 'review' && reviewTab === 'current') {
         try {
-          const response = await fetch(`/api/reviews?stock_list_id=${selectedList.stock_list_id}`);
+          // Pass the current user's ID along with the stock_list_id.
+          const response = await fetch(
+            `/api/reviews?stock_list_id=${selectedList.stock_list_id}&user_id=${currentUserId}`
+          );
           if (response.ok) {
             const data = await response.json();
             setCurrentReviews(data.reviews || []);
@@ -129,9 +122,8 @@ export default function StockListsPage() {
       }
     };
     fetchReviews();
-  }, [selectedList, modalTab, reviewTab]);
+  }, [selectedList, modalTab, reviewTab, currentUserId]);
 
-  // Handle sharing a stock list.
   const handleShare = async () => {
     if (!shareUserId) {
       showNotification('Please enter a user ID to share with.', 'error');
@@ -156,18 +148,21 @@ export default function StockListsPage() {
         if (selectedList.visibility === 'private') {
           await fetchStockLists(activeTab);
         } else {
-          const updatedSharedWith = selectedList.shared_with && selectedList.shared_with.trim() !== ''
-            ? `${selectedList.shared_with}, ${shareUserId}`
-            : shareUserId;
+          const updatedSharedWith =
+            selectedList.shared_with && selectedList.shared_with.trim() !== ''
+              ? `${selectedList.shared_with}, ${shareUserId}`
+              : shareUserId;
           const updatedList = {
             ...selectedList,
             visibility: 'shared',
             shared_with: updatedSharedWith,
           };
           setSelectedList(updatedList);
-          setStockLists(prevLists => prevLists.map(l =>
-            l.stock_list_id === updatedList.stock_list_id ? updatedList : l
-          ));
+          setStockLists((prevLists) =>
+            prevLists.map((l) =>
+              l.stock_list_id === updatedList.stock_list_id ? updatedList : l
+            )
+          );
         }
       } else {
         showNotification(`Error: ${result.error}`, 'error');
@@ -178,7 +173,6 @@ export default function StockListsPage() {
     }
   };
 
-  // Open the change status modal.
   const openStatusModal = (list) => {
     if (list.creator_id !== currentUserId) {
       showNotification('You are not authorized to change this stock list status.', 'error');
@@ -190,7 +184,6 @@ export default function StockListsPage() {
     setShowStatusModal(true);
   };
 
-  // Confirm status change.
   const handleConfirmChangeStatus = async () => {
     if (!newStatus) return;
     try {
@@ -225,7 +218,6 @@ export default function StockListsPage() {
     setNewStatus('');
   };
 
-  // Handle deletion of a stock list.
   const handleDeleteStockList = async () => {
     try {
       const response = await fetch('/api/delete_stocklist', {
@@ -239,7 +231,9 @@ export default function StockListsPage() {
       const result = await response.json();
       if (response.ok) {
         showNotification('Stock list deleted successfully!', 'success');
-        setStockLists(prevLists => prevLists.filter(l => l.stock_list_id !== selectedList.stock_list_id));
+        setStockLists((prevLists) =>
+          prevLists.filter((l) => l.stock_list_id !== selectedList.stock_list_id)
+        );
         closeModal();
       } else {
         showNotification(`Error: ${result.error}`, 'error');
@@ -250,7 +244,6 @@ export default function StockListsPage() {
     }
   };
 
-  // Handle adding (or updating) a review.
   const handleAddReview = async () => {
     if (!reviewSubject.trim() || !reviewText.trim()) {
       showNotification('Please provide both a subject and review text.', 'error');
@@ -271,8 +264,11 @@ export default function StockListsPage() {
       if (response.ok) {
         showNotification(result.message, 'success');
         setReviewTab('current');
-        // Refresh reviews after adding/updating.
-        const res = await fetch(`/api/reviews?stock_list_id=${selectedList.stock_list_id}`);
+
+        // Fetch reviews including the current user's ID.
+        const res = await fetch(
+          `/api/reviews?stock_list_id=${selectedList.stock_list_id}&user_id=${currentUserId}`
+        );
         if (res.ok) {
           const data = await res.json();
           setCurrentReviews(data.reviews || []);
@@ -286,8 +282,6 @@ export default function StockListsPage() {
     }
   };
 
-  // Handle deleting a review.
-  // This function calls our /api/delete_review endpoint.
   const handleDeleteReview = async (reviewerIdToDelete) => {
     try {
       const response = await fetch('/api/delete_review', {
@@ -302,8 +296,9 @@ export default function StockListsPage() {
       const result = await response.json();
       if (response.ok) {
         showNotification(result.message, 'success');
-        // Refresh the reviews after deletion.
-        const res = await fetch(`/api/reviews?stock_list_id=${selectedList.stock_list_id}`);
+        const res = await fetch(
+          `/api/reviews?stock_list_id=${selectedList.stock_list_id}&user_id=${currentUserId}`
+        );
         if (res.ok) {
           const data = await res.json();
           setCurrentReviews(data.reviews || []);
@@ -317,7 +312,6 @@ export default function StockListsPage() {
     }
   };
 
-  // Render change status modal.
   const renderChangeStatusModal = () => {
     if (!showStatusModal) return null;
     return (
@@ -350,7 +344,6 @@ export default function StockListsPage() {
     );
   };
 
-  // Render modal content based on modalTab.
   const renderModalContent = () => {
     if (!selectedList) return null;
     switch (modalTab) {
@@ -427,7 +420,6 @@ export default function StockListsPage() {
       case 'review':
         return (
           <div>
-            {/* Review sub-tabs */}
             <div style={styles.reviewTabContainer}>
               <button
                 style={reviewTab === 'current' ? styles.subTabActive : styles.subTab}
@@ -498,7 +490,6 @@ export default function StockListsPage() {
     }
   };
 
-  // Render main stock list cards.
   const renderContent = () => (
     <div>
       <h2 style={styles.pageHeader}>
@@ -538,7 +529,6 @@ export default function StockListsPage() {
                 <strong>Shared with:</strong> {list.shared_with}
               </p>
             )}
-            {/* Review button removed from the card view */}
           </div>
         ))
       )}
@@ -547,7 +537,6 @@ export default function StockListsPage() {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Sidebar Navigation */}
       <nav style={styles.sidebar}>
         <div>
           <Link href="/portfolio" passHref>
@@ -577,7 +566,6 @@ export default function StockListsPage() {
         </button>
       </nav>
 
-      {/* Main Content */}
       <div style={styles.mainContent}>
         <h1 style={styles.mainHeader}>Stock Lists</h1>
         <div style={styles.tabContainer}>
@@ -603,7 +591,6 @@ export default function StockListsPage() {
         <div style={styles.contentStyle}>{renderContent()}</div>
       </div>
 
-      {/* Modal Overlay */}
       {selectedList && (
         <div style={styles.modalOverlay} onClick={closeModal}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -647,10 +634,8 @@ export default function StockListsPage() {
         </div>
       )}
 
-      {/* Change Status Modal */}
       {renderChangeStatusModal()}
 
-      {/* Toast Notification */}
       {notification && (
         <div
           style={{
@@ -947,4 +932,3 @@ const styles = {
     color: '#aaa',
   },
 };
-

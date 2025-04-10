@@ -10,8 +10,6 @@ const pool = new Pool({
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 10000,
 });
-
-// Helper function to execute queries with logging.
 async function query(text, params) {
   const start = Date.now();
   const res = await pool.query(text, params);
@@ -21,7 +19,7 @@ async function query(text, params) {
 }
 
 export default async function handler(req, res) {
-  // Only allow DELETE method.
+  
   if (req.method !== 'DELETE') {
     res.setHeader('Allow', ['DELETE']);
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -34,10 +32,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Start transaction.
+    
     await query('BEGIN');
 
-    // Verify the stock list exists and is owned by the current user.
+   
     const fetchQuery = `SELECT creator_id FROM StockLists WHERE stock_list_id = $1;`;
     const fetchResult = await query(fetchQuery, [stock_list_id]);
     if (fetchResult.rowCount === 0) {
@@ -50,23 +48,23 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Not authorized: only the owner can delete the stock list.' });
     }
 
-    // Delete records from StockListShares.
+
     const deleteSharesQuery = `DELETE FROM StockListShares WHERE stock_list_id = $1;`;
     await query(deleteSharesQuery, [stock_list_id]);
 
-    // Delete records from StockListItems.
+
     const deleteItemsQuery = `DELETE FROM StockListItems WHERE stock_list_id = $1;`;
     await query(deleteItemsQuery, [stock_list_id]);
 
-    // Delete all reviews associated with this stock list.
+   
     const deleteReviewsQuery = `DELETE FROM Reviews WHERE stock_list_id = $1;`;
     await query(deleteReviewsQuery, [stock_list_id]);
 
-    // Delete the stock list record.
+  
     const deleteListQuery = `DELETE FROM StockLists WHERE stock_list_id = $1;`;
     await query(deleteListQuery, [stock_list_id]);
 
-    // Commit transaction.
+    
     await query('COMMIT');
     return res.status(200).json({ message: 'Stock list and all associated reviews deleted successfully.' });
   } catch (error) {

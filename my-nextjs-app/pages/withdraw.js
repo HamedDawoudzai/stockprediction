@@ -63,7 +63,8 @@ export default function WithdrawPage() {
           <label style={styles.label}>Withdraw Amount (USD):</label>
           <input
             type="number"
-            min="1"
+            min="0.01"
+            step="any"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             style={styles.input}

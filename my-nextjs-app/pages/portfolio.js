@@ -317,6 +317,9 @@ export default function PortfolioPage() {
           <Link href="/stock_lists" passHref>
             <div style={styles.sideNavItem}>Stocklists</div>
           </Link>
+          <Link href="/add_daily_stock" passHref>
+            <div style={styles.sideNavItem}>Add daily stock</div>
+          </Link>
         </div>
         <button onClick={handleLogout} style={styles.logoutButton}>
           Log Out
