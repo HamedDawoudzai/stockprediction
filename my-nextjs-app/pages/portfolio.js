@@ -24,7 +24,7 @@ export default function PortfolioPage() {
     try {
       const res = await fetch(`/api/total_balance?portfolio_id=${selectedPortfolioId}`, {
         method: 'GET',
-        headers: { 'Cache-Control': 'no-cache' },
+        headers: { 'Cache-Control': 'no-cache' }
       });
       if (res.ok) {
         const data = await res.json();
@@ -45,7 +45,7 @@ export default function PortfolioPage() {
     try {
       const res = await fetch(`/api/cash_balance?portfolio_id=${selectedPortfolioId}`, {
         method: 'GET',
-        headers: { 'Cache-Control': 'no-cache' },
+        headers: { 'Cache-Control': 'no-cache' }
       });
       if (res.ok) {
         const data = await res.json();
@@ -66,7 +66,7 @@ export default function PortfolioPage() {
     try {
       const res = await fetch(`/api/portfolio_stocks?portfolio_id=${selectedPortfolioId}`, {
         method: 'GET',
-        headers: { 'Cache-Control': 'no-cache' },
+        headers: { 'Cache-Control': 'no-cache' }
       });
       if (res.ok) {
         const data = await res.json();
@@ -95,10 +95,9 @@ export default function PortfolioPage() {
       router.push('/login');
       return;
     }
-
     const fetchPortfolios = async () => {
       try {
-        const res = await fetch(`/api/portfolios?user=${currentUser}`);
+        const res = await fetch(`/api/portfolios?user=${currentUser}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setPortfolios(data);
@@ -106,7 +105,6 @@ export default function PortfolioPage() {
             const savedPortfolioId = localStorage.getItem('current_portfolio_id');
             const matchedPortfolio = data.find(p => p.portfolio_id === savedPortfolioId);
             const initialPortfolio = matchedPortfolio || data[0];
-
             setSelectedPortfolioId(initialPortfolio.portfolio_id);
             localStorage.setItem('current_portfolio_id', initialPortfolio.portfolio_id);
           }
@@ -119,7 +117,6 @@ export default function PortfolioPage() {
         setError('An unexpected error occurred.');
       }
     };
-
     fetchPortfolios();
   }, [router]);
 
@@ -131,7 +128,6 @@ export default function PortfolioPage() {
   const handlePortfolioChange = (e) => {
     const newPortfolioId = e.target.value.trim();
     localStorage.setItem('current_portfolio_id', newPortfolioId);
-
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       const isValid = portfolios.some(p => p.portfolio_id === newPortfolioId);
@@ -178,7 +174,6 @@ export default function PortfolioPage() {
         setShowBuyModal(false);
         return;
       }
-
       try {
         const res = await fetch('/api/buy_button', {
           method: 'POST',
@@ -192,10 +187,7 @@ export default function PortfolioPage() {
           }),
         });
         if (res.ok) {
-          showNotification(
-            `Purchase successful: You spent $${amount} to buy ~${calculatedShares} shares of ${buyStock.symbol}.`,
-            'success'
-          );
+          showNotification(`Purchase successful: You spent $${amount} to buy ~${calculatedShares} shares of ${buyStock.symbol}.`, 'success');
           refreshPortfolioData();
         } else {
           const errData = await res.json();
@@ -232,7 +224,6 @@ export default function PortfolioPage() {
         setShowSellModal(false);
         return;
       }
-
       try {
         const res = await fetch('/api/sell_button', {
           method: 'POST',
@@ -246,10 +237,7 @@ export default function PortfolioPage() {
           }),
         });
         if (res.ok) {
-          showNotification(
-            `Sale successful: You sold ~$${amount} worth of ${sellStock.symbol} (~${calculatedShares} shares).`,
-            'success'
-          );
+          showNotification(`Sale successful: You sold ~$${amount} worth of ${sellStock.symbol} (~${calculatedShares} shares).`, 'success');
           refreshPortfolioData();
         } else {
           const errData = await res.json();
@@ -275,26 +263,14 @@ export default function PortfolioPage() {
     }
   };
 
+  // Function for navigating to the Chart page
+  const handleViewChart = (stock) => {
+    router.push(`/chart?symbol=${encodeURIComponent(stock.symbol)}`);
+  };
+
   return (
-    <div
-      style={{
-        backgroundColor: '#0b0b0b',
-        color: '#fff',
-        minHeight: '100vh',
-        display: 'flex',
-        fontFamily: 'sans-serif',
-      }}
-    >
-      <nav
-        style={{
-          width: '250px',
-          backgroundColor: '#111',
-          padding: '1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}
-      >
+    <div style={{ backgroundColor: '#0b0b0b', color: '#fff', minHeight: '100vh', display: 'flex', fontFamily: 'sans-serif' }}>
+      <nav style={{ width: '250px', backgroundColor: '#111', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <Link href="/portfolio" passHref>
             <div style={styles.sideNavItem}>Portfolio</div>
@@ -321,27 +297,16 @@ export default function PortfolioPage() {
             <div style={styles.sideNavItem}>Add daily stock</div>
           </Link>
         </div>
-        <button onClick={handleLogout} style={styles.logoutButton}>
-          Log Out
-        </button>
+        <button onClick={handleLogout} style={styles.logoutButton}>Log Out</button>
       </nav>
 
       <main style={{ flexGrow: 1, padding: '2rem' }}>
-        <header
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '2rem',
-          }}
-        >
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.8rem' }}>
               Total Balance: {totalBalance !== null ? `$${totalBalance}` : '[insert total balance here]'}
             </h1>
-            <p style={{ margin: 0, color: '#39d39f' }}>
-              [Total Balance includes cash + stocks]
-            </p>
+            <p style={{ margin: 0, color: '#39d39f' }}>[Total Balance includes cash + stocks]</p>
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <Link href="/deposit" passHref>
@@ -356,14 +321,7 @@ export default function PortfolioPage() {
           </div>
         </header>
 
-        <nav
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            marginBottom: '1rem',
-            alignItems: 'center',
-          }}
-        >
+        <nav style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center' }}>
           <button style={styles.whiteButton}>Overview</button>
           <Link href="/transactions" passHref>
             <button style={styles.outlinedButton}>Transactions</button>
@@ -371,13 +329,7 @@ export default function PortfolioPage() {
           <select
             onChange={handlePortfolioChange}
             value={selectedPortfolioId || ''}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#fff',
-              color: '#000',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            style={{ padding: '0.5rem 1rem', backgroundColor: '#fff', color: '#000', border: 'none', cursor: 'pointer' }}
           >
             {portfolios.map((portfolio) => (
               <option key={portfolio.portfolio_id} value={portfolio.portfolio_id}>
@@ -408,6 +360,7 @@ export default function PortfolioPage() {
                   <th style={cellStyle}>Value</th>
                   <th style={cellStyle}>Buy</th>
                   <th style={cellStyle}>Sell</th>
+                  <th style={cellStyle}>Chart</th>
                 </tr>
               </thead>
               <tbody>
@@ -417,19 +370,18 @@ export default function PortfolioPage() {
                     <td style={cellStyle}>{stock.shares}</td>
                     <td style={cellStyle}>${stock.value}</td>
                     <td style={{ ...cellStyle, textAlign: 'center' }}>
-                      <button
-                        style={styles.buyButton}
-                        onClick={() => handleBuy(stock)}
-                      >
+                      <button style={styles.buyButton} onClick={() => handleBuy(stock)}>
                         Buy
                       </button>
                     </td>
                     <td style={{ ...cellStyle, textAlign: 'center' }}>
-                      <button
-                        style={styles.sellButton}
-                        onClick={() => handleSell(stock)}
-                      >
+                      <button style={styles.sellButton} onClick={() => handleSell(stock)}>
                         Sell
+                      </button>
+                    </td>
+                    <td style={{ ...cellStyle, textAlign: 'center' }}>
+                      <button style={styles.whiteButton} onClick={() => handleViewChart(stock)}>
+                        Chart
                       </button>
                     </td>
                   </tr>
@@ -444,7 +396,6 @@ export default function PortfolioPage() {
         {error && <p style={{ color: '#f00' }}>{error}</p>}
       </main>
 
-      {/* Buy Modal */}
       {showBuyModal && buyStock && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -461,18 +412,13 @@ export default function PortfolioPage() {
               />
             </label>
             <div style={modalButtonsStyle}>
-              <button onClick={handleConfirmBuy} style={styles.buyButton}>
-                Confirm
-              </button>
-              <button onClick={handleCancelBuy} style={styles.cancelButton}>
-                Cancel
-              </button>
+              <button style={styles.buyButton} onClick={handleConfirmBuy}>Confirm</button>
+              <button style={styles.cancelButton} onClick={handleCancelBuy}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Sell Modal */}
       {showSellModal && sellStock && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -489,24 +435,11 @@ export default function PortfolioPage() {
               />
             </label>
             <div style={modalButtonsStyle}>
-              <button onClick={handleSellMax} style={styles.maxButton}>
-                Max
-              </button>
-              <button onClick={handleConfirmSell} style={styles.sellButton}>
-                Confirm
-              </button>
-              <button onClick={handleCancelSell} style={styles.cancelButton}>
-                Cancel
-              </button>
+              <button style={styles.maxButton} onClick={handleSellMax}>Max</button>
+              <button style={styles.sellButton} onClick={handleConfirmSell}>Confirm</button>
+              <button style={styles.cancelButton} onClick={handleCancelSell}>Cancel</button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Notification Popup */}
-      {notification && (
-        <div style={notificationStyle(notification.type)}>
-          {notification.message}
         </div>
       )}
     </div>
@@ -515,7 +448,7 @@ export default function PortfolioPage() {
 
 const cellStyle = {
   border: '1px solid #333',
-  padding: '8px',
+  padding: '8px'
 };
 
 const modalOverlayStyle = {
@@ -528,7 +461,7 @@ const modalOverlayStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  zIndex: 1000,
+  zIndex: 1000
 };
 
 const modalContentStyle = {
@@ -537,13 +470,13 @@ const modalContentStyle = {
   borderRadius: '8px',
   padding: '30px',
   width: '400px',
-  textAlign: 'center',
+  textAlign: 'center'
 };
 
 const modalButtonsStyle = {
   marginTop: '20px',
   display: 'flex',
-  justifyContent: 'space-around',
+  justifyContent: 'space-around'
 };
 
 const inputStyle = {
@@ -551,7 +484,7 @@ const inputStyle = {
   padding: '8px',
   width: '90%',
   borderRadius: '4px',
-  border: '1px solid #ccc',
+  border: '1px solid #ccc'
 };
 
 const notificationStyle = (type) => ({
@@ -573,7 +506,7 @@ const styles = {
   sideNavItem: {
     cursor: 'pointer',
     padding: '10px',
-    borderBottom: '1px solid #333',
+    borderBottom: '1px solid #333'
   },
   logoutButton: {
     backgroundColor: 'red',
@@ -582,27 +515,27 @@ const styles = {
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    marginTop: 'auto',
+    marginTop: 'auto'
   },
   whiteButton: {
     backgroundColor: '#fff',
     color: '#000',
     border: 'none',
     padding: '0.5rem 1rem',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   outlinedButton: {
     backgroundColor: 'transparent',
     color: '#fff',
     border: '1px solid #fff',
     padding: '0.5rem 1rem',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   section: {
     backgroundColor: '#1c1c1c',
     borderRadius: '8px',
     padding: '1rem',
-    marginBottom: '2rem',
+    marginBottom: '2rem'
   },
   chartPlaceholder: {
     height: '200px',
@@ -610,7 +543,7 @@ const styles = {
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   buyButton: {
     backgroundColor: 'green',
@@ -618,7 +551,7 @@ const styles = {
     border: 'none',
     padding: '0.3rem 0.6rem',
     borderRadius: '4px',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   cancelButton: {
     backgroundColor: '#ccc',
@@ -626,7 +559,7 @@ const styles = {
     border: 'none',
     padding: '0.3rem 0.6rem',
     borderRadius: '4px',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   sellButton: {
     backgroundColor: 'red',
@@ -634,7 +567,7 @@ const styles = {
     border: 'none',
     padding: '0.3rem 0.6rem',
     borderRadius: '4px',
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   maxButton: {
     backgroundColor: '#007BFF',
@@ -642,6 +575,6 @@ const styles = {
     border: 'none',
     padding: '0.3rem 0.6rem',
     borderRadius: '4px',
-    cursor: 'pointer',
-  },
+    cursor: 'pointer'
+  }
 };

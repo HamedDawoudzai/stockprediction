@@ -1,4 +1,3 @@
-// pages/api/portfolio_stocks.js
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -25,7 +24,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const queryText = `SELECT * FROM portfoliostocks WHERE portfolio_id = $1`;
+    const queryText = `
+      SELECT ps.portfolio_id, ps.symbol, ps.shares, (ps.shares * sp.price) AS value
+      FROM portfoliostocks ps
+      JOIN stocks_price sp ON ps.symbol = sp.symbol
+      WHERE ps.portfolio_id = $1
+      ORDER BY ps.symbol ASC
+    `;
     const result = await pool.query(queryText, [portfolio_id]);
     res.status(200).json(result.rows);
   } catch (error) {

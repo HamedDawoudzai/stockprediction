@@ -1,4 +1,3 @@
-// pages/api/buy_button.js
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -8,10 +7,9 @@ const pool = new Pool({
   password: 'abc123',
   port: 5432,
   ssl: false,
-  connectionTimeoutMillis: 10000, 
+  connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 10000,
 });
-
 
 async function query(text, params) {
   const start = Date.now();
@@ -29,7 +27,6 @@ export default async function handler(req, res) {
 
   const { portfolio_id, symbol, amount, price, calculatedShares } = req.body;
 
-  
   if (
     !portfolio_id ||
     !symbol ||
@@ -45,22 +42,20 @@ export default async function handler(req, res) {
   }
 
   try {
-   
     const portfolioQuery = `SELECT cash_balance FROM portfolios WHERE portfolio_id = $1`;
     const portfolioResult = await query(portfolioQuery, [portfolio_id]);
-    
+
     if (!portfolioResult.rows.length) {
       res.status(404).json({ error: 'Portfolio not found' });
       return;
     }
-    
+
     const currentCash = parseFloat(portfolioResult.rows[0].cash_balance);
     if (currentCash < amount) {
       res.status(400).json({ error: 'Insufficient funds for this purchase' });
       return;
     }
 
-   
     const updatePortfolioQuery = `
       UPDATE portfolios 
       SET cash_balance = cash_balance - $1 
@@ -68,11 +63,10 @@ export default async function handler(req, res) {
     `;
     await query(updatePortfolioQuery, [amount, portfolio_id]);
 
-   
     const insertTransactionQuery = `
       INSERT INTO transactions 
       (portfolio_id, transaction_type, symbol, shares, price, amount, transaction_date)
-      VALUES ($1, 'buy', $2, $3, $4, $5, NOW())
+      VALUES ($1, 'buy', $2::varchar, $3, $4, $5, NOW())
     `;
     await query(insertTransactionQuery, [
       portfolio_id,
@@ -82,21 +76,17 @@ export default async function handler(req, res) {
       amount,
     ]);
 
-   
-    const totalValue = parseFloat((calculatedShares * price).toFixed(2));
     const updatePortfolioStocksQuery = `
       INSERT INTO portfoliostocks (portfolio_id, symbol, shares, value)
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2::varchar, $3::real, $3::real * (SELECT price FROM stocks_price WHERE symbol = $2::varchar))
       ON CONFLICT (portfolio_id, symbol) DO UPDATE 
       SET shares = portfoliostocks.shares + EXCLUDED.shares,
-          value = (portfoliostocks.shares + EXCLUDED.shares) * $5
+          value = (portfoliostocks.shares + EXCLUDED.shares) * (SELECT price FROM stocks_price WHERE symbol = EXCLUDED.symbol)
     `;
     await query(updatePortfolioStocksQuery, [
       portfolio_id,
       symbol,
       calculatedShares,
-      totalValue,
-      price,
     ]);
 
     res.status(200).json({ message: 'Stock purchase successful' });

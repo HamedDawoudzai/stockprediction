@@ -1,4 +1,3 @@
-// pages/api/cash_balance.js
 import { Pool } from 'pg';
 
 const pool = new Pool({

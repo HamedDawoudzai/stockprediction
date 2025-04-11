@@ -1,4 +1,3 @@
-// pages/api/sell_button.js
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -43,7 +42,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    
     const portfolioQuery = `SELECT cash_balance FROM portfolios WHERE portfolio_id = $1`;
     const portfolioResult = await query(portfolioQuery, [portfolio_id]);
     if (!portfolioResult.rows.length) {
@@ -51,7 +49,6 @@ export default async function handler(req, res) {
       return;
     }
     
-   
     const stockQuery = `
       SELECT shares 
       FROM portfoliostocks 
@@ -69,10 +66,9 @@ export default async function handler(req, res) {
       return;
     }
 
-    
     const priceQuery = `
       SELECT price 
-      FROM Stocks_Price 
+      FROM stocks_price 
       WHERE symbol = $1
       LIMIT 1
     `;
@@ -82,7 +78,6 @@ export default async function handler(req, res) {
       latestPrice = parseFloat(priceResult.rows[0].price);
     }
 
-    
     const updatePortfolioQuery = `
       UPDATE portfolios 
       SET cash_balance = cash_balance + $1 
@@ -90,7 +85,6 @@ export default async function handler(req, res) {
     `;
     await query(updatePortfolioQuery, [amount, portfolio_id]);
 
-    
     const insertTransactionQuery = `
       INSERT INTO transactions 
       (portfolio_id, transaction_type, symbol, shares, price, amount, transaction_date)
@@ -104,10 +98,8 @@ export default async function handler(req, res) {
       amount,
     ]);
 
-    
     const remainingShares = currentShares - calculatedShares;
     if (remainingShares > 0) {
-      
       const newValue = parseFloat((remainingShares * latestPrice).toFixed(2));
       const updateStockQuery = `
         UPDATE portfoliostocks 
@@ -116,7 +108,6 @@ export default async function handler(req, res) {
       `;
       await query(updateStockQuery, [remainingShares, newValue, portfolio_id, symbol]);
     } else {
-     
       const deleteStockQuery = `
         DELETE FROM portfoliostocks 
         WHERE portfolio_id = $1 AND symbol = $2

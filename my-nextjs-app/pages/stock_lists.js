@@ -104,7 +104,6 @@ export default function StockListsPage() {
     const fetchReviews = async () => {
       if (selectedList && modalTab === 'review' && reviewTab === 'current') {
         try {
-          // Pass the current user's ID along with the stock_list_id.
           const response = await fetch(
             `/api/reviews?stock_list_id=${selectedList.stock_list_id}&user_id=${currentUserId}`
           );
@@ -265,7 +264,6 @@ export default function StockListsPage() {
         showNotification(result.message, 'success');
         setReviewTab('current');
 
-        // Fetch reviews including the current user's ID.
         const res = await fetch(
           `/api/reviews?stock_list_id=${selectedList.stock_list_id}&user_id=${currentUserId}`
         );

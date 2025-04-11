@@ -14,13 +14,10 @@ export default function AddDailyStockPage() {
   const handleAddDailyStock = async (e) => {
     e.preventDefault();
     
-    // Basic validation: ensure none of the fields are empty.
     if (!timestamp || !symbol || open === '' || high === '' || low === '' || close === '' || volume === '') {
       setMessage('Please fill in all fields.');
       return;
     }
-
-    // Parse numerical values.
     const parsedOpen = parseFloat(open);
     const parsedHigh = parseFloat(high);
     const parsedLow = parseFloat(low);
