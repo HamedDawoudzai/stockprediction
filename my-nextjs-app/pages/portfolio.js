@@ -13,7 +13,6 @@ export default function PortfolioPage() {
   const [error, setError] = useState('');
   const [notification, setNotification] = useState(null);
 
- 
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStock, setBuyStock] = useState(null);
   const [buyDollarAmount, setBuyDollarAmount] = useState('');
@@ -21,14 +20,12 @@ export default function PortfolioPage() {
   const [sellStock, setSellStock] = useState(null);
   const [sellDollarAmount, setSellDollarAmount] = useState('');
 
-  
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [statsStock, setStatsStock] = useState(null);
   const [statsFromDate, setStatsFromDate] = useState('');
   const [statsToDate, setStatsToDate] = useState('');
   const [statsResult, setStatsResult] = useState(null);
 
- 
   const [showPortfolioStatsModal, setShowPortfolioStatsModal] = useState(false);
   const [portfolioStatsFromDate, setPortfolioStatsFromDate] = useState('');
   const [portfolioStatsToDate, setPortfolioStatsToDate] = useState('');
@@ -287,6 +284,7 @@ export default function PortfolioPage() {
   const handleViewChart = (stock) => {
     router.push(`/chart?symbol=${encodeURIComponent(stock.symbol)}`);
   };
+
   const handleOpenStats = (stock) => {
     setStatsStock(stock);
     setStatsFromDate('');
@@ -355,7 +353,6 @@ export default function PortfolioPage() {
     setShowPortfolioStatsModal(false);
     setPortfolioStatsResult(null);
   };
-
   return (
     <div style={{ backgroundColor: '#0b0b0b', color: '#fff', minHeight: '100vh', display: 'flex', fontFamily: 'sans-serif' }}>
       {/* Side Nav */}
@@ -482,7 +479,8 @@ export default function PortfolioPage() {
                   <tr key={index}>
                     <td style={cellStyle}>{stock.symbol}</td>
                     <td style={cellStyle}>{stock.shares}</td>
-                    <td style={cellStyle}>${stock.value}</td>
+                    {/* Here, we round the value to two decimals */}
+                    <td style={cellStyle}>${Number(stock.value).toFixed(2)}</td>
                     <td style={{ ...cellStyle, textAlign: 'center' }}>
                       <button style={styles.buyButton} onClick={() => handleBuy(stock)}>
                         Buy
@@ -738,6 +736,7 @@ export default function PortfolioPage() {
     </div>
   );
 }
+
 const cellStyle = {
   border: '1px solid #333',
   padding: '8px',

@@ -47,10 +47,8 @@ export default async function handler(req, res) {
     }
     
     const insertTransactionQuery = `
-      INSERT INTO transactions 
-        (portfolio_id, transaction_type, symbol, shares, price, amount)
-      VALUES
-        ($1, 'deposit', NULL, 0, 0, $2)
+      INSERT INTO transactions (portfolio_id, transaction_type, symbol, shares, price, amount)
+      VALUES($1, 'deposit', NULL, 0, 0, $2)
       RETURNING transaction_id
     `;
     const insertValues = [portfolio_id, depositAmount];

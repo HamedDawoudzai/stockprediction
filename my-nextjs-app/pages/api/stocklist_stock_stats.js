@@ -84,11 +84,11 @@ export default async function handler(req, res) {
     const statsQuery = `
       WITH
       stock_prices AS (
-        SELECT "Timestamp" AS dt, "Close"
+        SELECT "Timestamp" AS time, "Close"
         FROM unifiedstockdata
         WHERE symbol = $1
           AND "Timestamp" BETWEEN $2 AND $3
-        ORDER BY dt
+        ORDER BY time
       ),
       stock_stats AS (
         SELECT 
@@ -98,36 +98,36 @@ export default async function handler(req, res) {
         FROM stock_prices
       ),
       stock_returns_raw AS (
-        SELECT dt, "Close",
-               LAG("Close") OVER (ORDER BY dt) AS prev_close
+        SELECT time, "Close",
+               LAG("Close") OVER (ORDER BY time) AS prev_close
         FROM stock_prices
       ),
       stock_returns AS (
-        SELECT dt, ("Close" - prev_close) / prev_close AS stock_return
+        SELECT time, ("Close" - prev_close) / prev_close AS stock_return
         FROM stock_returns_raw
         WHERE prev_close IS NOT NULL
       ),
       market_values AS (
-        SELECT "Timestamp"::date AS dt, SUM("Close") AS market_close
+        SELECT "Timestamp"::date AS time, SUM("Close") AS market_close
         FROM unifiedstockdata
         WHERE "Timestamp" BETWEEN $2 AND $3
         GROUP BY "Timestamp"::date
-        ORDER BY dt
+        ORDER BY time
       ),
       market_returns_raw AS (
-        SELECT dt, market_close,
-               LAG(market_close) OVER (ORDER BY dt) AS prev_market_close
+        SELECT time, market_close,
+               LAG(market_close) OVER (ORDER BY time) AS prev_market_close
         FROM market_values
       ),
       market_returns AS (
-        SELECT dt, (market_close - prev_market_close) / prev_market_close AS market_return
+        SELECT time, (market_close - prev_market_close) / prev_market_close AS market_return
         FROM market_returns_raw
         WHERE prev_market_close IS NOT NULL
       ),
       joined_returns AS (
         SELECT sr.stock_return, mr.market_return
         FROM stock_returns sr
-        JOIN market_returns mr ON sr.dt = mr.dt
+        JOIN market_returns mr ON sr.time = mr.time
       ),
       beta_calc AS (
         SELECT 

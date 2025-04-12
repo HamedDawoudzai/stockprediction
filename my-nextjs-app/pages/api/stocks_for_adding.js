@@ -20,9 +20,7 @@ export default async function handler(req, res) {
 
   try {
     const query = `
-      SELECT DISTINCT ON (symbol)
-        symbol AS symbol,
-        "Close" AS price
+      SELECT DISTINCT ON (symbol) symbol AS symbol, "Close" AS price
       FROM daystock
       ORDER BY symbol, "Timestamp" DESC;
     `;

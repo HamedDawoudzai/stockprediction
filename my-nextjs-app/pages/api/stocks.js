@@ -20,18 +20,11 @@ export default async function handler(req, res) {
   try {
     const query = `
       SELECT * FROM (
-        SELECT DISTINCT ON (symbol)
-          symbol AS "Symbol",
-          "Timestamp",
-          "Open",
-          "High",
-          "Low",
-          "Close",
-          "Volume"
+        SELECT DISTINCT ON (symbol) symbol AS "Symbol", "Timestamp", "Open", "High", "Low", "Close", "Volume"
         FROM unifiedstockdata
         ORDER BY symbol, "Timestamp" DESC
-      ) AS t
-      ORDER BY t."Symbol" ASC;
+      ) AS temp
+      ORDER BY temp."Symbol" ASC;
     `;
     const result = await pool.query(query);
     return res.status(200).json(result.rows);

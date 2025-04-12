@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Check cache first
+ 
     const cacheQueryText = `
       SELECT * FROM cache_for_stock_statistics
       WHERE symbol = $1 AND from_date = $2 AND to_date = $3;
@@ -43,7 +43,6 @@ export default async function handler(req, res) {
 
     if (cacheResult.rows.length > 0) {
       const cachedRow = cacheResult.rows[0];
-      // Round the values to 2 decimals before returning
       return res.status(200).json({
         symbol,
         from_date,
@@ -60,15 +59,13 @@ export default async function handler(req, res) {
     
     const queryText = `
       WITH
-      -- Get closing prices for the selected stock
       stock_prices AS (
-        SELECT "Timestamp" AS dt, "Close"
+        SELECT "Timestamp" AS time, "Close"
         FROM unifiedstockdata
         WHERE symbol = $1
           AND "Timestamp" BETWEEN $2 AND $3
-        ORDER BY dt
+        ORDER BY time
       ),
-      -- Aggregate stock statistics
       stock_stats AS (
         SELECT 
           AVG("Close") AS avg_close,
@@ -76,43 +73,40 @@ export default async function handler(req, res) {
           CASE WHEN AVG("Close") <> 0 THEN STDDEV_POP("Close") / AVG("Close") ELSE NULL END AS coefficient_of_variation
         FROM stock_prices
       ),
-      -- Compute daily returns for the stock using LAG
-      stock_returns_raw AS (
-        SELECT dt, "Close",
-               LAG("Close") OVER (ORDER BY dt) AS prev_close
+      previous_prices AS (
+        SELECT time, "Close",
+               LAG("Close") OVER (ORDER BY time) AS prev_close
         FROM stock_prices
       ),
       stock_returns AS (
-        SELECT dt, ("Close" - prev_close) / prev_close AS stock_return
-        FROM stock_returns_raw
+        SELECT time, ("Close" - prev_close) / prev_close AS stock_return
+        FROM previous_prices
         WHERE prev_close IS NOT NULL
       ),
-      -- Compute market proxy by summing the close prices of all stocks (per day)
+      
       market_values AS (
-        SELECT "Timestamp"::date AS dt, SUM("Close") AS market_close
+        SELECT "Timestamp"::date AS time, SUM("Close") AS market_close
         FROM unifiedstockdata
         WHERE "Timestamp" BETWEEN $2 AND $3
         GROUP BY "Timestamp"::date
-        ORDER BY dt
+        ORDER BY time
       ),
-      -- Compute daily market returns using LAG on the market proxy
+      
       market_returns_raw AS (
-        SELECT dt, market_close,
-               LAG(market_close) OVER (ORDER BY dt) AS prev_market_close
+        SELECT time, market_close,
+               LAG(market_close) OVER (ORDER BY time) AS prev_market_close
         FROM market_values
       ),
       market_returns AS (
-        SELECT dt, (market_close - prev_market_close) / prev_market_close AS market_return
+        SELECT time, (market_close - prev_market_close) / prev_market_close AS market_return
         FROM market_returns_raw
         WHERE prev_market_close IS NOT NULL
       ),
-      -- Join stock and market returns on date
       joined_returns AS (
         SELECT sr.stock_return, mr.market_return
         FROM stock_returns sr
-        JOIN market_returns mr ON sr.dt = mr.dt
+        JOIN market_returns mr ON sr.time = mr.time
       ),
-      -- Calculate covariance and variance for Beta
       beta_calc AS (
         SELECT 
           COVAR_POP(stock_return, market_return) AS covar,
@@ -141,7 +135,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Compute and round the values to 2 decimals
+   
     const row = result.rows[0];
     const avgClose = parseFloat(parseFloat(row.avg_close).toFixed(2));
     const stddevClose = parseFloat(parseFloat(row.stddev_close).toFixed(2));
@@ -150,7 +144,7 @@ export default async function handler(req, res) {
       : null;
     const beta = row.beta !== null ? parseFloat(parseFloat(row.beta).toFixed(2)) : null;
 
-    // Insert the computed and rounded values into the cache table using SQL's ROUND() function.
+   
     const insertCacheQuery = `
       INSERT INTO cache_for_stock_statistics
         (symbol, from_date, to_date, avg_close, stddev_close, coefficient_of_variation, beta)

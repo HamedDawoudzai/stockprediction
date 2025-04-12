@@ -64,8 +64,7 @@ export default async function handler(req, res) {
     await query(updatePortfolioQuery, [amount, portfolio_id]);
 
     const insertTransactionQuery = `
-      INSERT INTO transactions 
-      (portfolio_id, transaction_type, symbol, shares, price, amount, transaction_date)
+      INSERT INTO transactions (portfolio_id, transaction_type, symbol, shares, price, amount, transaction_date)
       VALUES ($1, 'buy', $2::varchar, $3, $4, $5, NOW())
     `;
     await query(insertTransactionQuery, [

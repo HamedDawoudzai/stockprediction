@@ -41,10 +41,9 @@ export default async function handler(req, res) {
         WHERE portfolio_id = $1
       ),
       stock_returns AS (
-        SELECT symbol,
-               "Timestamp" AS dt,
-               ( "Close" - LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") )
-                 / LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") AS return
+        SELECT symbol, "Timestamp" AS time,
+                ( "Close" - LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") )
+                / LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") AS return
         FROM unifiedstockdata
         WHERE symbol IN (SELECT symbol FROM portfolio_symbols)
           AND "Timestamp" BETWEEN $2 AND $3
@@ -61,7 +60,7 @@ export default async function handler(req, res) {
             ELSE 'These stocks have no significant correlation.'
           END AS analysis
         FROM stock_returns sr1
-        JOIN stock_returns sr2 ON sr1.dt = sr2.dt
+        JOIN stock_returns sr2 ON sr1.time = sr2.time
         WHERE sr1.symbol < sr2.symbol
         GROUP BY sr1.symbol, sr2.symbol
       )

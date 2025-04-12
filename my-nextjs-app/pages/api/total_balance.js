@@ -35,11 +35,12 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Portfolio not found' });
     }
     const cashBalance = parseFloat(portfolioResult.rows[0].cash_balance);
+
     const stocksQuery = `
-      SELECT COALESCE(SUM(ps.shares * sp.price), 0) AS stocks_total
-      FROM portfoliostocks ps
-      JOIN stocks_price sp ON ps.symbol = sp.symbol
-      WHERE ps.portfolio_id = $1
+      SELECT COALESCE(SUM(portfolioStock.shares * stockPrice.price), 0) AS stocks_total
+      FROM portfoliostocks portfolioStock
+      JOIN stocks_price stockPrice ON portfolioStock.symbol = stockPrice.symbol
+      WHERE portfolioStock.portfolio_id = $1
     `;
     const stocksResult = await pool.query(stocksQuery, [portfolio_id]);
     const stocksTotal = parseFloat(stocksResult.rows[0].stocks_total);
