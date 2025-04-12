@@ -11,20 +11,36 @@ export default function PortfolioPage() {
   const [cashBalance, setCashBalance] = useState(null);
   const [portfolioStocks, setPortfolioStocks] = useState([]);
   const [error, setError] = useState('');
+  const [notification, setNotification] = useState(null);
+
+  // States for Buy/Sell Modals
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStock, setBuyStock] = useState(null);
   const [buyDollarAmount, setBuyDollarAmount] = useState('');
   const [showSellModal, setShowSellModal] = useState(false);
   const [sellStock, setSellStock] = useState(null);
   const [sellDollarAmount, setSellDollarAmount] = useState('');
-  const [notification, setNotification] = useState(null);
+
+  // Stock-level Statistics Modal state
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [statsStock, setStatsStock] = useState(null);
+  const [statsFromDate, setStatsFromDate] = useState('');
+  const [statsToDate, setStatsToDate] = useState('');
+  const [statsResult, setStatsResult] = useState(null);
+
+  // Portfolio-level Statistics Modal state
+  const [showPortfolioStatsModal, setShowPortfolioStatsModal] = useState(false);
+  const [portfolioStatsFromDate, setPortfolioStatsFromDate] = useState('');
+  const [portfolioStatsToDate, setPortfolioStatsToDate] = useState('');
+  const [portfolioStatsResult, setPortfolioStatsResult] = useState(null);
+
   const router = useRouter();
 
   const refreshTotalBalance = async () => {
     try {
       const res = await fetch(`/api/total_balance?portfolio_id=${selectedPortfolioId}`, {
         method: 'GET',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: { 'Cache-Control': 'no-cache' },
       });
       if (res.ok) {
         const data = await res.json();
@@ -45,7 +61,7 @@ export default function PortfolioPage() {
     try {
       const res = await fetch(`/api/cash_balance?portfolio_id=${selectedPortfolioId}`, {
         method: 'GET',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: { 'Cache-Control': 'no-cache' },
       });
       if (res.ok) {
         const data = await res.json();
@@ -66,7 +82,7 @@ export default function PortfolioPage() {
     try {
       const res = await fetch(`/api/portfolio_stocks?portfolio_id=${selectedPortfolioId}`, {
         method: 'GET',
-        headers: { 'Cache-Control': 'no-cache' }
+        headers: { 'Cache-Control': 'no-cache' },
       });
       if (res.ok) {
         const data = await res.json();
@@ -145,10 +161,9 @@ export default function PortfolioPage() {
     router.push('/login');
   };
 
-  const totalStockValue = portfolioStocks.reduce(
-    (acc, stock) => acc + Number(stock.value),
-    0
-  ).toFixed(2);
+  const totalStockValue = portfolioStocks
+    .reduce((acc, stock) => acc + Number(stock.value), 0)
+    .toFixed(2);
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
@@ -157,6 +172,7 @@ export default function PortfolioPage() {
     }, 3000);
   };
 
+  // Buy/Sell functions
   const handleBuy = (stock) => {
     const price = stock.shares > 0 ? Number((stock.value / stock.shares).toFixed(2)) : 0;
     setBuyStock({ ...stock, Close: price });
@@ -187,7 +203,10 @@ export default function PortfolioPage() {
           }),
         });
         if (res.ok) {
-          showNotification(`Purchase successful: You spent $${amount} to buy ~${calculatedShares} shares of ${buyStock.symbol}.`, 'success');
+          showNotification(
+            `Purchase successful: You spent $${amount} to buy ~${calculatedShares} shares of ${buyStock.symbol}.`,
+            'success'
+          );
           refreshPortfolioData();
         } else {
           const errData = await res.json();
@@ -237,7 +256,10 @@ export default function PortfolioPage() {
           }),
         });
         if (res.ok) {
-          showNotification(`Sale successful: You sold ~$${amount} worth of ${sellStock.symbol} (~${calculatedShares} shares).`, 'success');
+          showNotification(
+            `Sale successful: You sold ~$${amount} worth of ${sellStock.symbol} (~${calculatedShares} shares).`,
+            'success'
+          );
           refreshPortfolioData();
         } else {
           const errData = await res.json();
@@ -263,13 +285,84 @@ export default function PortfolioPage() {
     }
   };
 
-  // Function for navigating to the Chart page
   const handleViewChart = (stock) => {
     router.push(`/chart?symbol=${encodeURIComponent(stock.symbol)}`);
   };
 
+  // Stock-level Statistics Modal functions
+  const handleOpenStats = (stock) => {
+    setStatsStock(stock);
+    setStatsFromDate('');
+    setStatsToDate('');
+    setStatsResult(null);
+    setShowStatsModal(true);
+  };
+
+  const handleConfirmStats = async () => {
+    if (!statsFromDate || !statsToDate) {
+      showNotification('Please enter both from and to dates.', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/stock_stats?symbol=${encodeURIComponent(statsStock.symbol)}&from_date=${statsFromDate}&to_date=${statsToDate}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setStatsResult(data);
+      } else {
+        const errData = await res.json();
+        showNotification(`Error: ${errData.error}`, 'error');
+      }
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+      showNotification('An error occurred fetching stats.', 'error');
+    }
+  };
+
+  const handleCancelStats = () => {
+    setShowStatsModal(false);
+    setStatsResult(null);
+  };
+
+  // Portfolio-level Statistics Modal functions
+  const handleOpenPortfolioStats = () => {
+    setPortfolioStatsFromDate('');
+    setPortfolioStatsToDate('');
+    setPortfolioStatsResult(null);
+    setShowPortfolioStatsModal(true);
+  };
+
+  const handleConfirmPortfolioStats = async () => {
+    if (!portfolioStatsFromDate || !portfolioStatsToDate) {
+      showNotification('Please enter both from and to dates for portfolio statistics.', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/stocks_comparison?portfolio_id=${selectedPortfolioId}&from_date=${portfolioStatsFromDate}&to_date=${portfolioStatsToDate}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setPortfolioStatsResult(data);
+      } else {
+        const errData = await res.json();
+        showNotification(`Error: ${errData.error}`, 'error');
+      }
+    } catch (err) {
+      console.error('Error fetching portfolio statistics:', err);
+      showNotification('An error occurred fetching portfolio statistics.', 'error');
+    }
+  };
+
+  const handleCancelPortfolioStats = () => {
+    setShowPortfolioStatsModal(false);
+    setPortfolioStatsResult(null);
+  };
+
   return (
     <div style={{ backgroundColor: '#0b0b0b', color: '#fff', minHeight: '100vh', display: 'flex', fontFamily: 'sans-serif' }}>
+      {/* Side Nav */}
       <nav style={{ width: '250px', backgroundColor: '#111', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <Link href="/portfolio" passHref>
@@ -297,9 +390,12 @@ export default function PortfolioPage() {
             <div style={styles.sideNavItem}>Add daily stock</div>
           </Link>
         </div>
-        <button onClick={handleLogout} style={styles.logoutButton}>Log Out</button>
+        <button onClick={handleLogout} style={styles.logoutButton}>
+          Log Out
+        </button>
       </nav>
 
+      {/* Main Content */}
       <main style={{ flexGrow: 1, padding: '2rem' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
@@ -321,6 +417,7 @@ export default function PortfolioPage() {
           </div>
         </header>
 
+        {/* Portfolio Choice */}
         <nav style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center' }}>
           <button style={styles.whiteButton}>Overview</button>
           <Link href="/transactions" passHref>
@@ -339,6 +436,7 @@ export default function PortfolioPage() {
           </select>
         </nav>
 
+        {/* Portfolio Chart Section */}
         <section style={styles.section}>
           <h2 style={{ marginTop: 0 }}>Portfolio Chart</h2>
           <div style={styles.chartPlaceholder}>
@@ -346,11 +444,30 @@ export default function PortfolioPage() {
           </div>
         </section>
 
+        {/* Cash and Stocks Section */}
         <section style={styles.section}>
           <h2 style={{ marginTop: 0 }}>Cash</h2>
           <p>{cashBalance !== null ? `$${cashBalance}` : '[insert cash balance here]'}</p>
 
           <h2>Stocks (Value: ${totalStockValue})</h2>
+
+          {/* Portfolio Statistics Button placed above the stocks table */}
+          <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+            <button
+              style={{
+                backgroundColor: '#4CAF50',
+                color: '#fff',
+                padding: '0.6rem 1rem',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+              onClick={handleOpenPortfolioStats}
+            >
+              Portfolio Statistics
+            </button>
+          </div>
+
           {portfolioStocks.length > 0 ? (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -361,6 +478,7 @@ export default function PortfolioPage() {
                   <th style={cellStyle}>Buy</th>
                   <th style={cellStyle}>Sell</th>
                   <th style={cellStyle}>Chart</th>
+                  <th style={cellStyle}>Statistics</th>
                 </tr>
               </thead>
               <tbody>
@@ -384,6 +502,11 @@ export default function PortfolioPage() {
                         Chart
                       </button>
                     </td>
+                    <td style={{ ...cellStyle, textAlign: 'center' }}>
+                      <button style={styles.whiteButton} onClick={() => handleOpenStats(stock)}>
+                        Statistics
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -396,6 +519,7 @@ export default function PortfolioPage() {
         {error && <p style={{ color: '#f00' }}>{error}</p>}
       </main>
 
+      {/* ===== Buy Modal ===== */}
       {showBuyModal && buyStock && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -412,13 +536,18 @@ export default function PortfolioPage() {
               />
             </label>
             <div style={modalButtonsStyle}>
-              <button style={styles.buyButton} onClick={handleConfirmBuy}>Confirm</button>
-              <button style={styles.cancelButton} onClick={handleCancelBuy}>Cancel</button>
+              <button style={styles.buyButton} onClick={handleConfirmBuy}>
+                Confirm
+              </button>
+              <button style={styles.cancelButton} onClick={handleCancelBuy}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* ===== Sell Modal ===== */}
       {showSellModal && sellStock && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -435,20 +564,190 @@ export default function PortfolioPage() {
               />
             </label>
             <div style={modalButtonsStyle}>
-              <button style={styles.maxButton} onClick={handleSellMax}>Max</button>
-              <button style={styles.sellButton} onClick={handleConfirmSell}>Confirm</button>
-              <button style={styles.cancelButton} onClick={handleCancelSell}>Cancel</button>
+              <button style={styles.maxButton} onClick={handleSellMax}>
+                Max
+              </button>
+              <button style={styles.sellButton} onClick={handleConfirmSell}>
+                Confirm
+              </button>
+              <button style={styles.cancelButton} onClick={handleCancelSell}>
+                Cancel
+              </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ===== Stock-Level Statistics Modal ===== */}
+      {showStatsModal && statsStock && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            {!statsResult ? (
+              <>
+                <h2 style={{ marginBottom: '10px' }}>Statistics for {statsStock.symbol}</h2>
+                <p style={{ marginBottom: '20px' }}>Enter your time interval:</p>
+                <label style={{ display: 'block', marginBottom: '10px' }}>
+                  From Date:
+                  <input
+                    type="date"
+                    value={statsFromDate}
+                    onChange={(e) => setStatsFromDate(e.target.value)}
+                    style={inputStyle}
+                  />
+                </label>
+                <label style={{ display: 'block', marginBottom: '10px' }}>
+                  To Date:
+                  <input
+                    type="date"
+                    value={statsToDate}
+                    onChange={(e) => setStatsToDate(e.target.value)}
+                    style={inputStyle}
+                  />
+                </label>
+                <div style={modalButtonsStyle}>
+                  <button style={styles.whiteButton} onClick={handleConfirmStats}>
+                    Confirm
+                  </button>
+                  <button style={styles.cancelButton} onClick={handleCancelStats}>
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 style={{ marginBottom: '10px' }}>Statistics for {statsStock.symbol}</h2>
+                <div style={{ maxWidth: '100%', overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <tbody>
+                      <tr>
+                        <td style={cellStyle}>Symbol</td>
+                        <td style={cellStyle}>{statsResult.symbol}</td>
+                      </tr>
+                      <tr>
+                        <td style={cellStyle}>From Date</td>
+                        <td style={cellStyle}>{statsResult.from_date}</td>
+                      </tr>
+                      <tr>
+                        <td style={cellStyle}>To Date</td>
+                        <td style={cellStyle}>{statsResult.to_date}</td>
+                      </tr>
+                      <tr>
+                        <td style={cellStyle}>Average Close</td>
+                        <td style={cellStyle}>{statsResult.avgClose}</td>
+                      </tr>
+                      <tr>
+                        <td style={cellStyle}>Stddev Close</td>
+                        <td style={cellStyle}>{statsResult.stddevClose}</td>
+                      </tr>
+                      <tr>
+                        <td style={cellStyle}>Coefficient of Variation</td>
+                        <td style={cellStyle}>{statsResult.coefficientOfVariation}</td>
+                      </tr>
+                      <tr>
+                        <td style={cellStyle}>Beta</td>
+                        <td style={cellStyle}>{statsResult.beta}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div style={modalButtonsStyle}>
+                  <button style={styles.whiteButton} onClick={() => { setShowStatsModal(false); setStatsResult(null); }}>
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===== Portfolio-Level Statistics Modal ===== */}
+      {showPortfolioStatsModal && (
+        <div style={modalOverlayStyle}>
+          <div style={{ ...modalContentStyle, width: '700px', maxHeight: '80vh', overflowY: 'auto' }}>
+            {!portfolioStatsResult ? (
+              <>
+                <h2 style={{ marginBottom: '10px' }}>Portfolio Statistics</h2>
+                <p style={{ marginBottom: '20px' }}>Enter your time interval:</p>
+                <label style={{ display: 'block', marginBottom: '10px' }}>
+                  From Date:
+                  <input
+                    type="date"
+                    value={portfolioStatsFromDate}
+                    onChange={(e) => setPortfolioStatsFromDate(e.target.value)}
+                    style={inputStyle}
+                  />
+                </label>
+                <label style={{ display: 'block', marginBottom: '10px' }}>
+                  To Date:
+                  <input
+                    type="date"
+                    value={portfolioStatsToDate}
+                    onChange={(e) => setPortfolioStatsToDate(e.target.value)}
+                    style={inputStyle}
+                  />
+                </label>
+                <div style={modalButtonsStyle}>
+                  <button style={styles.whiteButton} onClick={handleConfirmPortfolioStats}>
+                    Confirm
+                  </button>
+                  <button style={styles.cancelButton} onClick={handleCancelPortfolioStats}>
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 style={{ marginBottom: '10px' }}>Portfolio Statistics</h2>
+                <div style={{ maxWidth: '100%', overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={cellStyle}>Symbol 1</th>
+                        <th style={cellStyle}>Symbol 2</th>
+                        <th style={cellStyle}>Correlation</th>
+                        <th style={cellStyle}>Covariance</th>
+                        <th style={cellStyle}>Analysis</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {portfolioStatsResult.map((row, i) => (
+                        <tr key={i}>
+                          <td style={cellStyle}>{row.symbol1}</td>
+                          <td style={cellStyle}>{row.symbol2}</td>
+                          <td style={cellStyle}>{row.correlation.toFixed(4)}</td>
+                          <td style={cellStyle}>{row.covariance.toFixed(4)}</td>
+                          <td style={cellStyle}>{row.analysis}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div style={modalButtonsStyle}>
+                  <button style={styles.whiteButton} onClick={handleCancelPortfolioStats}>
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {notification && (
+        <div style={notificationStyle(notification.type)}>
+          {notification.message}
         </div>
       )}
     </div>
   );
 }
 
+// ====== Inline style constants =====
 const cellStyle = {
   border: '1px solid #333',
-  padding: '8px'
+  padding: '8px',
+  whiteSpace: 'normal',
 };
 
 const modalOverlayStyle = {
@@ -461,7 +760,7 @@ const modalOverlayStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  zIndex: 1000
+  zIndex: 1000,
 };
 
 const modalContentStyle = {
@@ -470,13 +769,13 @@ const modalContentStyle = {
   borderRadius: '8px',
   padding: '30px',
   width: '400px',
-  textAlign: 'center'
+  textAlign: 'center',
 };
 
 const modalButtonsStyle = {
   marginTop: '20px',
   display: 'flex',
-  justifyContent: 'space-around'
+  justifyContent: 'space-around',
 };
 
 const inputStyle = {
@@ -484,7 +783,7 @@ const inputStyle = {
   padding: '8px',
   width: '90%',
   borderRadius: '4px',
-  border: '1px solid #ccc'
+  border: '1px solid #ccc',
 };
 
 const notificationStyle = (type) => ({
@@ -499,14 +798,14 @@ const notificationStyle = (type) => ({
   boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
   zIndex: 1100,
   fontFamily: 'sans-serif',
-  fontSize: '16px'
+  fontSize: '16px',
 });
 
 const styles = {
   sideNavItem: {
     cursor: 'pointer',
     padding: '10px',
-    borderBottom: '1px solid #333'
+    borderBottom: '1px solid #333',
   },
   logoutButton: {
     backgroundColor: 'red',
@@ -515,59 +814,21 @@ const styles = {
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
-    marginTop: 'auto'
+    marginTop: 'auto',
   },
   whiteButton: {
     backgroundColor: '#fff',
     color: '#000',
     border: 'none',
     padding: '0.5rem 1rem',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   outlinedButton: {
     backgroundColor: 'transparent',
     color: '#fff',
     border: '1px solid #fff',
     padding: '0.5rem 1rem',
-    cursor: 'pointer'
-  },
-  section: {
-    backgroundColor: '#1c1c1c',
-    borderRadius: '8px',
-    padding: '1rem',
-    marginBottom: '2rem'
-  },
-  chartPlaceholder: {
-    height: '200px',
-    backgroundColor: '#2a2a2a',
-    borderRadius: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  buyButton: {
-    backgroundColor: 'green',
-    color: '#fff',
-    border: 'none',
-    padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  },
-  cancelButton: {
-    backgroundColor: '#ccc',
-    color: '#000',
-    border: 'none',
-    padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  },
-  sellButton: {
-    backgroundColor: 'red',
-    color: '#fff',
-    border: 'none',
-    padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   maxButton: {
     backgroundColor: '#007BFF',
@@ -575,6 +836,44 @@ const styles = {
     border: 'none',
     padding: '0.3rem 0.6rem',
     borderRadius: '4px',
-    cursor: 'pointer'
-  }
+    cursor: 'pointer',
+  },
+  buyButton: {
+    backgroundColor: 'green',
+    color: '#fff',
+    border: 'none',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  sellButton: {
+    backgroundColor: 'red',
+    color: '#fff',
+    border: 'none',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  cancelButton: {
+    backgroundColor: '#ccc',
+    color: '#000',
+    border: 'none',
+    padding: '0.3rem 0.6rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  section: {
+    backgroundColor: '#1c1c1c',
+    borderRadius: '8px',
+    padding: '1rem',
+    marginBottom: '2rem',
+  },
+  chartPlaceholder: {
+    height: '200px',
+    backgroundColor: '#2a2a2a',
+    borderRadius: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 };
