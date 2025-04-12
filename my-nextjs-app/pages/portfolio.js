@@ -13,7 +13,7 @@ export default function PortfolioPage() {
   const [error, setError] = useState('');
   const [notification, setNotification] = useState(null);
 
-  // States for Buy/Sell Modals
+ 
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStock, setBuyStock] = useState(null);
   const [buyDollarAmount, setBuyDollarAmount] = useState('');
@@ -21,14 +21,14 @@ export default function PortfolioPage() {
   const [sellStock, setSellStock] = useState(null);
   const [sellDollarAmount, setSellDollarAmount] = useState('');
 
-  // Stock-level Statistics Modal state
+  
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [statsStock, setStatsStock] = useState(null);
   const [statsFromDate, setStatsFromDate] = useState('');
   const [statsToDate, setStatsToDate] = useState('');
   const [statsResult, setStatsResult] = useState(null);
 
-  // Portfolio-level Statistics Modal state
+ 
   const [showPortfolioStatsModal, setShowPortfolioStatsModal] = useState(false);
   const [portfolioStatsFromDate, setPortfolioStatsFromDate] = useState('');
   const [portfolioStatsToDate, setPortfolioStatsToDate] = useState('');
@@ -172,7 +172,6 @@ export default function PortfolioPage() {
     }, 3000);
   };
 
-  // Buy/Sell functions
   const handleBuy = (stock) => {
     const price = stock.shares > 0 ? Number((stock.value / stock.shares).toFixed(2)) : 0;
     setBuyStock({ ...stock, Close: price });
@@ -288,8 +287,6 @@ export default function PortfolioPage() {
   const handleViewChart = (stock) => {
     router.push(`/chart?symbol=${encodeURIComponent(stock.symbol)}`);
   };
-
-  // Stock-level Statistics Modal functions
   const handleOpenStats = (stock) => {
     setStatsStock(stock);
     setStatsFromDate('');
@@ -325,7 +322,6 @@ export default function PortfolioPage() {
     setStatsResult(null);
   };
 
-  // Portfolio-level Statistics Modal functions
   const handleOpenPortfolioStats = () => {
     setPortfolioStatsFromDate('');
     setPortfolioStatsToDate('');
@@ -742,8 +738,6 @@ export default function PortfolioPage() {
     </div>
   );
 }
-
-// ====== Inline style constants =====
 const cellStyle = {
   border: '1px solid #333',
   padding: '8px',

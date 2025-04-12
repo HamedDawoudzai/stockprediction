@@ -31,7 +31,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields: sender_id and receiver_id.' });
   }
 
-  
   if (sender_id === receiver_id) {
     return res.status(400).json({ 
       error: "You can't add yourself", 
@@ -40,17 +39,17 @@ export default async function handler(req, res) {
   }
 
   try {
-   
+    // Check if the receiver exists.
     const checkUserQuery = `SELECT * FROM users WHERE user_id = $1`;
     const userResult = await query(checkUserQuery, [receiver_id]);
     if (!userResult.rows.length) {
       return res.status(400).json({ 
-        error: "user doesnt exist", 
+        error: "User doesn't exist", 
         popupType: "custom" 
       });
     }
 
-    
+    // Check if they are already friends.
     const friendshipQuery = `
       SELECT * FROM friendships
       WHERE user_id = $1 AND friend_id = $2
@@ -63,7 +62,7 @@ export default async function handler(req, res) {
       });
     }
 
-    
+    // Check for duplicate pending friend requests.
     const duplicateQuery = `
       SELECT * FROM friendrequests 
       WHERE sender_id = $1 AND receiver_id = $2 AND status = 'pending'
@@ -73,7 +72,35 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Duplicate request exists" });
     }
 
-  
+    // Use the current time in local format.
+    const nowStr = new Date().toLocaleString('sv', { timeZone: 'America/Toronto' });
+    const now = new Date(nowStr);
+
+    // Check if a friend deletion has occurred recently.
+    // We assume that when a friendship is deleted, an entry is inserted into friend_deletion_cache
+    // with user_id = receiver_id and friend_id = sender_id.
+    const deletionQuery = `
+      SELECT deletion_time 
+      FROM friend_deletion_cache 
+      WHERE user_id = $1 AND friend_id = $2
+      ORDER BY deletion_time DESC
+      LIMIT 1
+    `;
+    const deletionResult = await query(deletionQuery, [receiver_id, sender_id]);
+    if (deletionResult.rows.length > 0) {
+      const lastDeletionTime = new Date(deletionResult.rows[0].deletion_time);
+      const diffMsDeletion = now - lastDeletionTime;
+      const fiveMinutesMs = 5 * 60 * 1000;
+      if (diffMsDeletion < fiveMinutesMs) {
+        const remainingSec = Math.ceil((fiveMinutesMs - diffMsDeletion) / 1000);
+        return res.status(400).json({ 
+          error: `You have been recently deleted. Wait ${remainingSec} more seconds before sending another friend request.`,
+          popupType: "custom"
+        });
+      }
+    }
+
+    // Check for a recent rejection.
     const rejectedQuery = `
       SELECT response_time 
       FROM friendrequests 
@@ -82,9 +109,6 @@ export default async function handler(req, res) {
       LIMIT 1
     `;
     const rejectedResult = await query(rejectedQuery, [sender_id, receiver_id]);
-
-    const nowStr = new Date().toLocaleString('sv', { timeZone: 'America/Toronto' });
-    const now = new Date(nowStr);
     if (rejectedResult.rows.length > 0) {
       const lastResponseTime = new Date(rejectedResult.rows[0].response_time);
       const diffMs = now - lastResponseTime;
@@ -93,11 +117,12 @@ export default async function handler(req, res) {
         const remainingSec = Math.ceil((fiveMinutesMs - diffMs) / 1000);
         return res.status(400).json({ 
           error: `You have been rejected. Wait ${remainingSec} more seconds before sending another friend request.`,
-          popupType: "custom" 
+          popupType: "custom"
         });
       }
     }
 
+    // All checks passed, now insert the friend request.
     const insertQuery = `
       INSERT INTO friendrequests (sender_id, receiver_id, status, request_time)
       VALUES ($1, $2, 'pending', $3)

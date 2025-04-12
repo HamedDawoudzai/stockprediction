@@ -32,13 +32,28 @@ export default async function handler(req, res) {
   }
 
   try {
- 
+    // Delete the friendship from the friendships table.
     const deleteQuery = `
       DELETE FROM friendships 
       WHERE (user_id = $1 AND friend_id = $2)
          OR (user_id = $2 AND friend_id = $1)
     `;
     await query(deleteQuery, [user_id, friend_id]);
+
+    // Insert or update a record in friend_deletion_cache.
+    // This records the deletion time in local time (America/Toronto)
+    // so that the deleted user (friend_id) will not be allowed to send a new friend request
+    // to user_id for 5 minutes.
+    const insertDeletionQuery = `
+      INSERT INTO friend_deletion_cache (user_id, friend_id, deletion_time)
+      VALUES ($1, $2, NOW() AT TIME ZONE 'America/Toronto')
+      ON CONFLICT (user_id, friend_id)
+      DO UPDATE SET deletion_time = NOW() AT TIME ZONE 'America/Toronto';
+    `;
+    // Here, we assume that when a friendship is deleted, the friend being removed
+    // (friend_id) is the one we want to block from sending a new request to user_id.
+    await query(insertDeletionQuery, [user_id, friend_id]);
+
     return res.status(200).json({ message: 'Friendship deleted successfully.' });
   } catch (err) {
     console.error('Error deleting friendship:', err);

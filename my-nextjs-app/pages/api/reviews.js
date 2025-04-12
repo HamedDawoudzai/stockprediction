@@ -32,7 +32,6 @@ export default async function handler(req, res) {
     }
 
     try {
-      // Fetch the creator's ID for the stock list.
       const creatorRes = await query(
         `SELECT creator_id FROM StockLists WHERE stock_list_id = $1`,
         [stock_list_id]
@@ -47,7 +46,6 @@ export default async function handler(req, res) {
       let values;
 
       if (user_id === creator_id) {
-        // If the current user is the creator, return all reviews.
         reviewQuery = `
           SELECT reviewer_id, stock_list_id, subject, review_text, created_at
           FROM Reviews
@@ -56,7 +54,6 @@ export default async function handler(req, res) {
         `;
         values = [stock_list_id];
       } else {
-        // Otherwise, return only the creator's review and the current user's review.
         reviewQuery = `
           SELECT reviewer_id, stock_list_id, subject, review_text, created_at
           FROM Reviews

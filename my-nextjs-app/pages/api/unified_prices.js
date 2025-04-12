@@ -32,7 +32,6 @@ export default async function handler(req, res) {
   }
   
   try {
-    // Build query conditionally if a date range is provided.
     let queryText = `
       SELECT "Timestamp", "Close", symbol
       FROM unifiedstockdata
@@ -46,7 +45,6 @@ export default async function handler(req, res) {
     queryText += ` ORDER BY "Timestamp" ASC `;
     
     const { rows } = await query(queryText, params);
-    // Format Timestamp to a YYYY-MM-DD string.
     const formattedRows = rows.map(row => ({
       symbol: row.symbol,
       close: row.Close,

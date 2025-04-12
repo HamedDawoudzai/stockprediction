@@ -8,23 +8,22 @@ export default function ChartPage() {
   const router = useRouter();
   const { symbol } = router.query;
 
-  // activeTab can be 'past', 'future', or 'table'
+ 
   const [activeTab, setActiveTab] = useState('past');
-  // selectedRange for historical data: "all", "week", "month", "3months", "year", "5years"
+
   const [selectedRange, setSelectedRange] = useState("all");
-  // selectedRange for future data: "week", "month", "3months", "year", "5years"
+
   const [selectedFutureRange, setSelectedFutureRange] = useState("week");
   const [chartData, setChartData] = useState(null);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fixed dates for historical portion:
   const defaultStartStr = "2013-02-08";
-  // Our SP500 file ends at this date by default.
+ 
   const defaultEndStr   = "2018-02-07";
 
-  // Helper: Generate an array of Date objects (daily) for a given range.
+ 
   const generateDailyDateRange = (start, end) => {
     const dateArray = [];
     let currentDate = new Date(start);
@@ -35,9 +34,6 @@ export default function ChartPage() {
     }
     return dateArray;
   };
-
-  // Helper: Compute visible range based on overallEnd and selected historical range.
-  // "all" uses defaultStartStr; otherwise subtract the appropriate amount from overallEnd.
   const computeRangeDates = (overallEnd, range) => {
     let rangeEnd = new Date(overallEnd);
     let rangeStart;
@@ -72,7 +68,6 @@ export default function ChartPage() {
     return { start: rangeStart, end: rangeEnd };
   };
 
-  // Helper: Forward-fill missing data so that if a day has no data, it reuses the previous value.
   const fillGaps = (prices) => {
     let lastValue = null;
     return prices.map(val => {
@@ -85,20 +80,19 @@ export default function ChartPage() {
     });
   };
 
-  // Fetch unified (historical + current) price data for the Past tab.
-  // We query from defaultStartStr until today's date.
+
   const fetchPastData = async () => {
     setLoading(true);
     setError('');
     try {
       const fetchStart = defaultStartStr;
-      const fetchEnd = new Date().toISOString().split("T")[0]; // today's date
+      const fetchEnd = new Date().toISOString().split("T")[0];
       const res = await fetch(
         `/api/unified_prices?symbol=${encodeURIComponent(symbol)}&start_date=${fetchStart}&end_date=${fetchEnd}`
       );
       if (res.ok) {
         const data = await res.json();
-        // Build a lookup map: date (YYYY-MM-DD) -> close price.
+      
         const dataMap = {};
         let maxDataDate = new Date(defaultEndStr);
         data.forEach(item => {
@@ -108,7 +102,7 @@ export default function ChartPage() {
             maxDataDate = d;
           }
         });
-        // overallEnd is the later of defaultEndStr and the latest data date.
+        
         const overallEnd = maxDataDate;
         const { start: rangeStart, end: rangeEnd } = computeRangeDates(overallEnd, selectedRange);
         const dateRange = generateDailyDateRange(rangeStart, rangeEnd);
@@ -147,7 +141,6 @@ export default function ChartPage() {
     setLoading(false);
   };
 
-  // Mapping from future range selection to number of days to predict.
   const futureRangeMapping = {
     week: 7,
     month: 30,
@@ -156,14 +149,12 @@ export default function ChartPage() {
     "5years": 1825,
   };
 
-  // Fetch future predicted data.
-  // We first fetch the unified prices to get the anchor (last historical record)
-  // and then call /api/predict_price with the selected future_range.
+ 
   const fetchFutureData = async () => {
     setLoading(true);
     setError('');
     try {
-      // Fetch unified prices to obtain the last historical record.
+      
       const unifiedRes = await fetch(
         `/api/unified_prices?symbol=${encodeURIComponent(symbol)}`
       );
@@ -171,22 +162,22 @@ export default function ChartPage() {
       if (unifiedRes.ok) {
         const unifiedData = await unifiedRes.json();
         if (unifiedData.length > 0) {
-          anchorPoint = unifiedData[unifiedData.length - 1]; // the last record
+          anchorPoint = unifiedData[unifiedData.length - 1]; 
         }
       }
-      // Determine how many days to predict.
+     
       const daysToFetch = futureRangeMapping[selectedFutureRange] || 10;
-      // Call the predict_price endpoint with the future_range parameter.
+     
       const predictRes = await fetch(
         `/api/predict_price?symbol=${encodeURIComponent(symbol)}&days=${daysToFetch}&future_range=${selectedFutureRange}`
       );
       if (predictRes.ok) {
         const predictionData = await predictRes.json();
-        // Prepend the anchor point to ensure the graph starts at the last historical data point.
+       
         let combinedData = [];
         if (anchorPoint) {
           combinedData = [{
-            date: anchorPoint.date,  // The anchor date from historical data
+            date: anchorPoint.date,  
             predicted_close: Number(anchorPoint.close)
           }, ...predictionData];
         } else {
@@ -222,7 +213,7 @@ export default function ChartPage() {
     setLoading(false);
   };
 
-  // Fetch unified price data for the Table tab.
+  
   const fetchTableData = async () => {
     setLoading(true);
     setError('');
@@ -246,7 +237,7 @@ export default function ChartPage() {
     setLoading(false);
   };
 
-  // Refresh data when symbol, activeTab, or the selected ranges change.
+ 
   useEffect(() => {
     if (!symbol) return;
     setChartData(null);
@@ -258,14 +249,14 @@ export default function ChartPage() {
     } else if (activeTab === 'table') {
       fetchTableData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [symbol, activeTab, selectedRange, selectedFutureRange]);
 
   const handleGoBack = () => {
     router.back();
   };
 
-  // Render range selection buttons for the Past tab.
+  
   const renderPastRangeButtons = () => {
     const ranges = [
       { label: "All", value: "all" },
@@ -294,7 +285,6 @@ export default function ChartPage() {
     );
   };
 
-  // Render range selection buttons for the Future tab.
   const renderFutureRangeButtons = () => {
     const ranges = [
       { label: "Week", value: "week" },

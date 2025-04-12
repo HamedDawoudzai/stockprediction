@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 export default function StockListsPage() {
+  // Existing state variables
   const [activeTab, setActiveTab] = useState('public');
   const [stockLists, setStockLists] = useState([]);
   const [selectedList, setSelectedList] = useState(null);
@@ -19,6 +20,13 @@ export default function StockListsPage() {
   const [currentReviews, setCurrentReviews] = useState([]);
   const [reviewSubject, setReviewSubject] = useState('');
   const [reviewText, setReviewText] = useState('');
+
+  // New state for statistics in the modal
+  const [statsFromDate, setStatsFromDate] = useState('');
+  const [statsToDate, setStatsToDate] = useState('');
+  const [individualStats, setIndividualStats] = useState([]); // Array of stats objects for each symbol
+  const [comparisonStats, setComparisonStats] = useState([]);  // Array of pairwise comparison stats
+  const [statsLoaded, setStatsLoaded] = useState(false);
 
   const router = useRouter();
 
@@ -71,6 +79,12 @@ export default function StockListsPage() {
     setCurrentReviews([]);
     setReviewSubject('');
     setReviewText('');
+    // Reset statistics states when a new list is selected
+    setStatsFromDate('');
+    setStatsToDate('');
+    setIndividualStats([]);
+    setComparisonStats([]);
+    setStatsLoaded(false);
   };
 
   const closeModal = () => {
@@ -310,6 +324,62 @@ export default function StockListsPage() {
     }
   };
 
+  // New function to load statistics for the selected stock list
+  const handleLoadStocklistStats = async () => {
+    if (!selectedList) return;
+    if (!statsFromDate || !statsToDate) {
+      showNotification('Please select both From Date and To Date.', 'error');
+      return;
+    }
+
+    try {
+      // 1) Fetch all items (symbols) for this stock list
+      const itemsRes = await fetch(`/api/stocklist_items?stock_list_id=${selectedList.stock_list_id}`);
+      if (!itemsRes.ok) {
+        const errData = await itemsRes.json();
+        showNotification(`Error: ${errData.error || 'Could not fetch items'}`, 'error');
+        return;
+      }
+      const itemsData = await itemsRes.json();
+      const symbols = itemsData.items || [];
+
+      // 2) For each symbol, call the individual stats endpoint
+      const newIndividualStats = [];
+      for (const item of symbols) {
+        const symbol = item.symbol;
+        const statsRes = await fetch(
+          `/api/stocklist_stock_stats?stock_list_id=${selectedList.stock_list_id}&symbol=${encodeURIComponent(symbol)}&from_date=${statsFromDate}&to_date=${statsToDate}`
+        );
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          newIndividualStats.push(statsData);
+        } else {
+          const errData = await statsRes.json();
+          showNotification(`Error fetching stats for ${symbol}: ${errData.error}`, 'error');
+        }
+      }
+
+      // 3) Fetch the pairwise comparison statistics for the entire list
+      const compRes = await fetch(
+        `/api/stocklist_comparison?stock_list_id=${selectedList.stock_list_id}&from_date=${statsFromDate}&to_date=${statsToDate}`
+      );
+      let newComparisonStats = [];
+      if (compRes.ok) {
+        newComparisonStats = await compRes.json();
+      } else {
+        const errData = await compRes.json();
+        showNotification(`Error fetching comparison: ${errData.error}`, 'error');
+      }
+
+      setIndividualStats(newIndividualStats);
+      setComparisonStats(newComparisonStats);
+      setStatsLoaded(true);
+    } catch (err) {
+      console.error('Error in handleLoadStocklistStats:', err);
+      showNotification('An error occurred while loading statistics.', 'error');
+    }
+  };
+
   const renderChangeStatusModal = () => {
     if (!showStatusModal) return null;
     return (
@@ -377,9 +447,90 @@ export default function StockListsPage() {
         );
       case 'statistics':
         return (
-          <p>
-            Here we can display statistics for "{selectedList.stock_list_id}" (to be implemented).
-          </p>
+          <div>
+            <h3 style={styles.modalSectionTitle}>
+              Statistics for "{selectedList.stock_list_id}"
+            </h3>
+            {/* Date Inputs */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={styles.inputLabel}>From Date:</label>
+              <input
+                type="date"
+                value={statsFromDate}
+                onChange={(e) => setStatsFromDate(e.target.value)}
+                style={styles.inputField}
+              />
+              <label style={styles.inputLabel}>To Date:</label>
+              <input
+                type="date"
+                value={statsToDate}
+                onChange={(e) => setStatsToDate(e.target.value)}
+                style={styles.inputField}
+              />
+            </div>
+            <button style={styles.shareButton} onClick={handleLoadStocklistStats}>
+              Load Statistics
+            </button>
+            {statsLoaded && (
+              <div style={{ marginTop: '1rem' }}>
+                <h4>Individual Statistics</h4>
+                {individualStats.length === 0 ? (
+                  <p>No individual stats found.</p>
+                ) : (
+                  <table style={styles.statsTable}>
+                    <thead>
+                      <tr>
+                        <th style={styles.cellStyle}>Symbol</th>
+                        <th style={styles.cellStyle}>Avg Close</th>
+                        <th style={styles.cellStyle}>Stddev Close</th>
+                        <th style={styles.cellStyle}>Coeff Variation</th>
+                        <th style={styles.cellStyle}>Beta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {individualStats.map((s, i) => (
+                        <tr key={i}>
+                          <td style={styles.cellStyle}>{s.symbol}</td>
+                          <td style={styles.cellStyle}>{s.avgClose}</td>
+                          <td style={styles.cellStyle}>{s.stddevClose}</td>
+                          <td style={styles.cellStyle}>{s.coefficientOfVariation}</td>
+                          <td style={styles.cellStyle}>{s.beta}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+
+                <h4 style={{ marginTop: '2rem' }}>Comparison Statistics</h4>
+                {comparisonStats.length === 0 ? (
+                  <p>No comparison data found.</p>
+                ) : (
+                  <table style={styles.statsTable}>
+                    <thead>
+                      <tr>
+                        <th style={styles.cellStyle}>Symbol 1</th>
+                        <th style={styles.cellStyle}>Symbol 2</th>
+                        <th style={styles.cellStyle}>Correlation</th>
+                        <th style={styles.cellStyle}>Covariance</th>
+                        <th style={styles.cellStyle}>Analysis</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comparisonStats.map((row, i) => (
+                        <tr key={i}>
+                          <td style={styles.cellStyle}>{row.symbol1}</td>
+                          <td style={styles.cellStyle}>{row.symbol2}</td>
+                          <td style={styles.cellStyle}>{parseFloat(row.correlation).toFixed(4)}</td>
+                          <td style={styles.cellStyle}>{parseFloat(row.covariance).toFixed(4)}</td>
+                          <td style={styles.cellStyle}>{row.analysis}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+          </div>
         );
       case 'share':
         return (
@@ -855,6 +1006,10 @@ const styles = {
     backgroundColor: '#333',
     color: '#fff',
   },
+  inputLabel: {
+    marginBottom: '0.25rem',
+    fontWeight: 'bold',
+  },
   shareButton: {
     padding: '0.5rem 1rem',
     backgroundColor: '#007BFF',
@@ -929,4 +1084,14 @@ const styles = {
     fontSize: '0.8rem',
     color: '#aaa',
   },
+  statsTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    marginTop: '0.5rem',
+  },
+  cellStyle: {
+    border: '1px solid #333',
+    padding: '8px',
+  },
 };
+

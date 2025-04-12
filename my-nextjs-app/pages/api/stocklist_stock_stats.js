@@ -1,4 +1,4 @@
-// pages/api/stock_stats.js
+// pages/api/stocklist_stock_stats.js
 
 import { Pool } from 'pg';
 
@@ -15,52 +15,74 @@ const pool = new Pool({
 
 async function query(text, params) {
   const start = Date.now();
-  const res = await pool.query(text, params);
-  const duration = Date.now() - start;
-  console.log('executed query', { text, duration, rows: res.rowCount });
-  return res;
+  try {
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    console.log("executed query", { text, duration, rows: res.rowCount });
+    return res;
+  } catch (err) {
+    console.error("Query error:", err);
+    throw err;
+  }
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', ['GET']);
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "GET") {
+    res.setHeader("Allow", ["GET"]);
+    return res.status(405).json({ error: "Method not allowed" });
   }
-  const { symbol, from_date, to_date } = req.query;
-  if (!symbol || !from_date || !to_date) {
+  const { stock_list_id, symbol, from_date, to_date } = req.query;
+  if (!stock_list_id || !symbol || !from_date || !to_date) {
     return res.status(400).json({
-      error: 'Missing required query parameters: symbol, from_date, and to_date',
+      error:
+        "Missing required query parameters: stock_list_id, symbol, from_date, and to_date",
     });
   }
 
   try {
-    // Check cache first
+   
+    const checkQuery = `
+      SELECT COUNT(*) AS cnt
+      FROM stocklistitems
+      WHERE stock_list_id = $1 AND symbol = $2;
+    `;
+    const checkRes = await query(checkQuery, [stock_list_id, symbol]);
+    if (parseInt(checkRes.rows[0].cnt, 10) === 0) {
+      return res
+        .status(404)
+        .json({ error: "Symbol not found in the specified stock list" });
+    }
+
     const cacheQueryText = `
       SELECT * FROM cache_for_stock_statistics
       WHERE symbol = $1 AND from_date = $2 AND to_date = $3;
     `;
     const cacheResult = await query(cacheQueryText, [symbol, from_date, to_date]);
-
     if (cacheResult.rows.length > 0) {
       const cachedRow = cacheResult.rows[0];
-      // Round the values to 2 decimals before returning
       return res.status(200).json({
+        stock_list_id,
         symbol,
         from_date,
         to_date,
         avgClose: parseFloat(parseFloat(cachedRow.avg_close).toFixed(2)),
         stddevClose: parseFloat(parseFloat(cachedRow.stddev_close).toFixed(2)),
-        coefficientOfVariation: cachedRow.coefficient_of_variation !== null
-          ? parseFloat(parseFloat(cachedRow.coefficient_of_variation).toFixed(2))
-          : null,
-        beta: cachedRow.beta !== null ? parseFloat(parseFloat(cachedRow.beta).toFixed(2)) : null,
-        cached: true 
+        coefficientOfVariation:
+          cachedRow.coefficient_of_variation !== null
+            ? parseFloat(
+                parseFloat(cachedRow.coefficient_of_variation).toFixed(2)
+              )
+            : null,
+        beta:
+          cachedRow.beta !== null
+            ? parseFloat(parseFloat(cachedRow.beta).toFixed(2))
+            : null,
+        cached: true,
       });
     }
-    
-    const queryText = `
+
+    const statsQuery = `
       WITH
-      -- Get closing prices for the selected stock
       stock_prices AS (
         SELECT "Timestamp" AS dt, "Close"
         FROM unifiedstockdata
@@ -68,7 +90,6 @@ export default async function handler(req, res) {
           AND "Timestamp" BETWEEN $2 AND $3
         ORDER BY dt
       ),
-      -- Aggregate stock statistics
       stock_stats AS (
         SELECT 
           AVG("Close") AS avg_close,
@@ -76,7 +97,6 @@ export default async function handler(req, res) {
           CASE WHEN AVG("Close") <> 0 THEN STDDEV_POP("Close") / AVG("Close") ELSE NULL END AS coefficient_of_variation
         FROM stock_prices
       ),
-      -- Compute daily returns for the stock using LAG
       stock_returns_raw AS (
         SELECT dt, "Close",
                LAG("Close") OVER (ORDER BY dt) AS prev_close
@@ -87,7 +107,6 @@ export default async function handler(req, res) {
         FROM stock_returns_raw
         WHERE prev_close IS NOT NULL
       ),
-      -- Compute market proxy by summing the close prices of all stocks (per day)
       market_values AS (
         SELECT "Timestamp"::date AS dt, SUM("Close") AS market_close
         FROM unifiedstockdata
@@ -95,7 +114,6 @@ export default async function handler(req, res) {
         GROUP BY "Timestamp"::date
         ORDER BY dt
       ),
-      -- Compute daily market returns using LAG on the market proxy
       market_returns_raw AS (
         SELECT dt, market_close,
                LAG(market_close) OVER (ORDER BY dt) AS prev_market_close
@@ -106,13 +124,11 @@ export default async function handler(req, res) {
         FROM market_returns_raw
         WHERE prev_market_close IS NOT NULL
       ),
-      -- Join stock and market returns on date
       joined_returns AS (
         SELECT sr.stock_return, mr.market_return
         FROM stock_returns sr
         JOIN market_returns mr ON sr.dt = mr.dt
       ),
-      -- Calculate covariance and variance for Beta
       beta_calc AS (
         SELECT 
           COVAR_POP(stock_return, market_return) AS covar,
@@ -132,38 +148,32 @@ export default async function handler(req, res) {
         END AS beta
       FROM stock_stats s, beta_calc b;
     `;
-    const values = [symbol, from_date, to_date];
-    const result = await query(queryText, values);
-
-    if (result.rows.length === 0 || result.rows[0].avg_close === null) {
-      return res.status(404).json({
-        error: 'No data found for the given parameters',
-      });
+    const statsValues = [symbol, from_date, to_date];
+    const statsRes = await query(statsQuery, statsValues);
+    if (statsRes.rows.length === 0 || statsRes.rows[0].avg_close === null) {
+      return res
+        .status(404)
+        .json({ error: "No data found for the given parameters" });
     }
 
-    // Compute and round the values to 2 decimals
-    const row = result.rows[0];
+    const row = statsRes.rows[0];
     const avgClose = parseFloat(parseFloat(row.avg_close).toFixed(2));
     const stddevClose = parseFloat(parseFloat(row.stddev_close).toFixed(2));
-    const coefficientOfVariation = row.coefficient_of_variation !== null
-      ? parseFloat(parseFloat(row.coefficient_of_variation).toFixed(2))
-      : null;
-    const beta = row.beta !== null ? parseFloat(parseFloat(row.beta).toFixed(2)) : null;
+    const coefficientOfVariation =
+      row.coefficient_of_variation !== null
+        ? parseFloat(parseFloat(row.coefficient_of_variation).toFixed(2))
+        : null;
+    const beta =
+      row.beta !== null ? parseFloat(parseFloat(row.beta).toFixed(2)) : null;
 
-    // Insert the computed and rounded values into the cache table using SQL's ROUND() function.
+   
     const insertCacheQuery = `
       INSERT INTO cache_for_stock_statistics
         (symbol, from_date, to_date, avg_close, stddev_close, coefficient_of_variation, beta)
-      VALUES
-        (
-          $1,
-          $2,
-          $3,
-          ROUND($4::numeric, 2),
-          ROUND($5::numeric, 2),
-          ROUND($6::numeric, 2),
-          ROUND($7::numeric, 2)
-        )
+      VALUES (
+          $1, $2, $3, ROUND($4::numeric, 2), ROUND($5::numeric, 2),
+          ROUND($6::numeric, 2), ROUND($7::numeric, 2)
+      )
       ON CONFLICT (symbol, from_date, to_date)
       DO UPDATE SET
         avg_close = ROUND(EXCLUDED.avg_close::numeric, 2),
@@ -172,9 +182,7 @@ export default async function handler(req, res) {
         beta = ROUND(EXCLUDED.beta::numeric, 2),
         cached_at = NOW();
     `;
-    await query(insertCacheQuery, [symbol, from_date, to_date, avgClose, stddevClose, coefficientOfVariation, beta]);
-
-    return res.status(200).json({
+    await query(insertCacheQuery, [
       symbol,
       from_date,
       to_date,
@@ -182,12 +190,23 @@ export default async function handler(req, res) {
       stddevClose,
       coefficientOfVariation,
       beta,
-      cached: false
+    ]);
+
+    return res.status(200).json({
+      stock_list_id,
+      symbol,
+      from_date,
+      to_date,
+      avgClose,
+      stddevClose,
+      coefficientOfVariation,
+      beta,
+      cached: false,
     });
   } catch (err) {
-    console.error('Error in /api/stock_stats:', err);
+    console.error("Error in /api/stocklist_stock_stats:", err);
     return res.status(500).json({
-      error: 'Internal server error',
+      error: "Internal server error",
       details: err.message,
     });
   }
