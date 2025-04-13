@@ -1,5 +1,3 @@
-// pages/api/stocklist_comparison.js
-
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -59,33 +57,36 @@ export default async function handler(req, res) {
         FROM stocklistitems
         WHERE stock_list_id = $1
       ),
-      stock_returns AS (
+
+      rate_returns AS ( -- rate of return for every symbol in the stock list
         SELECT symbol,
                "Timestamp" AS dt,
                ( "Close" - LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") )
-                 / LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") AS return
+                 / LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") AS rate
         FROM unifiedstockdata
         WHERE symbol IN (SELECT symbol FROM stocklist_symbols)
           AND "Timestamp" BETWEEN $2 AND $3
       ),
-      pairwise AS (
+
+      pairwise AS ( -- Correlation and covariance calculation per pairs of stocks
         SELECT 
-          sr1.symbol AS symbol1,
-          sr2.symbol AS symbol2,
-          CORR(sr1.return, sr2.return) AS correlation,
-          COVAR_POP(sr1.return, sr2.return) AS covariance,
+          r1.symbol AS symbol1,
+          r2.symbol AS symbol2,
+          CORR(r1.rate, r2.rate) AS correlation,
+          COVAR_POP(r1.rate, r2.rate) AS covariance,
           CASE 
-            WHEN CORR(sr1.return, sr2.return) > 0 THEN 'Stock list is more volatile with these stocks.'
-            WHEN CORR(sr1.return, sr2.return) < 0 THEN 'Stock list is less volatile with these stocks.'
+            WHEN CORR(r1.rate, r2.rate) > 0 THEN 'Stock list is more volatile with these stocks.'
+            WHEN CORR(r1.rate, r2.rate) < 0 THEN 'Stock list is less volatile with these stocks.'
             ELSE 'No significant correlation found.'
           END AS analysis
-        FROM stock_returns sr1
-        JOIN stock_returns sr2 ON sr1.dt = sr2.dt
-        WHERE sr1.symbol < sr2.symbol
-        GROUP BY sr1.symbol, sr2.symbol
+        FROM rate_returns r1
+        JOIN rate_returns r2 ON r1.dt = r2.dt
+        WHERE r1.symbol < r2.symbol
+        GROUP BY r1.symbol, r2.symbol
       )
       SELECT * FROM pairwise;
     `;
+
     const compValues = [stock_list_id, from_date, to_date];
     const compResult = await query(comparisonQuery, compValues);
     return res.status(200).json(compResult.rows);

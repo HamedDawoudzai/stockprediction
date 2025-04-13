@@ -1,5 +1,3 @@
-// pages/api/stocklist_stock_stats.js
-
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -82,59 +80,74 @@ export default async function handler(req, res) {
     }
 
     const statsQuery = `
-      WITH
-      stock_prices AS (
+       WITH
+     
+      prices AS ( 
         SELECT "Timestamp" AS time, "Close"
         FROM unifiedstockdata
         WHERE symbol = $1
           AND "Timestamp" BETWEEN $2 AND $3
-        ORDER BY time
+        
       ),
-      stock_stats AS (
+	  
+      -- VARIATION COEFFICIENT CALCULATION.
+      varcalc AS ( 
         SELECT 
           AVG("Close") AS avg_close,
           STDDEV_POP("Close") AS stddev_close,
-          CASE WHEN AVG("Close") <> 0 THEN STDDEV_POP("Close") / AVG("Close") ELSE NULL END AS coefficient_of_variation
-        FROM stock_prices
+          STDDEV_POP("Close") / AVG("Close") AS coefficient_of_variation
+        FROM prices
       ),
-      stock_returns_raw AS (
+      
+	  
+      -- PREV DAY PRICES
+      prev_prices AS (
         SELECT time, "Close",
                LAG("Close") OVER (ORDER BY time) AS prev_close
-        FROM stock_prices
+        FROM prices
       ),
-      stock_returns AS (
-        SELECT time, ("Close" - prev_close) / prev_close AS stock_return
-        FROM stock_returns_raw
-        WHERE prev_close IS NOT NULL
+
+    -- EXPECTED RETURN (r_i)
+      expected_stocks AS ( 
+        SELECT time, ("Close" - prev_close) / prev_close AS expected_stock
+        FROM prev_prices
+        WHERE prev_close IS NOT NULL -- accounts for first stock recorded
       ),
-      market_values AS (
-        SELECT "Timestamp"::date AS time, SUM("Close") AS market_close
+
+     
+      sp_500 AS ( --Takes the sum of all of the stocks in the market each day between timestamp of $2 and $3
+        SELECT DATE("Timestamp") AS time, SUM("Close") AS market_close
         FROM unifiedstockdata
         WHERE "Timestamp" BETWEEN $2 AND $3
-        GROUP BY "Timestamp"::date
+        GROUP BY DATE("Timestamp")
         ORDER BY time
       ),
-      market_returns_raw AS (
+
+  
+      prev_sp_500 AS ( -- Gives previous market close for each day in the market
         SELECT time, market_close,
                LAG(market_close) OVER (ORDER BY time) AS prev_market_close
-        FROM market_values
+        FROM sp_500
       ),
-      market_returns AS (
+
+
+
+      market_returns AS ( --For each of these rows, we calculate the market return with current close and previous close
         SELECT time, (market_close - prev_market_close) / prev_market_close AS market_return
-        FROM market_returns_raw
+        FROM prev_sp_500
         WHERE prev_market_close IS NOT NULL
       ),
-      joined_returns AS (
-        SELECT sr.stock_return, mr.market_return
-        FROM stock_returns sr
-        JOIN market_returns mr ON sr.time = mr.time
-      ),
-      beta_calc AS (
+	
+  
+      -- Calculate covariance and variance for Beta
+      beta_calc AS ( -- Covariance and Variance are calculated over time period specified in our prev. tables of $t2 and $t3
         SELECT 
-          COVAR_POP(stock_return, market_return) AS covar,
+          COVAR_POP(expected_stock, market_return) AS covar,
           VAR_POP(market_return) AS var_market
-        FROM joined_returns
+        FROM expected_stocks es JOIN market_returns mr ON es.time = mr.time
       )
+
+
       SELECT
         $1 AS symbol,
         $2 AS from_date,
@@ -146,7 +159,7 @@ export default async function handler(req, res) {
           WHEN b.var_market <> 0 THEN b.covar / b.var_market
           ELSE NULL
         END AS beta
-      FROM stock_stats s, beta_calc b;
+      FROM varcalc s, beta_calc b;
     `;
     const statsValues = [symbol, from_date, to_date];
     const statsRes = await query(statsQuery, statsValues);

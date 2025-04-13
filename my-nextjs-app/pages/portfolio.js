@@ -353,6 +353,7 @@ export default function PortfolioPage() {
     setShowPortfolioStatsModal(false);
     setPortfolioStatsResult(null);
   };
+
   return (
     <div style={{ backgroundColor: '#0b0b0b', color: '#fff', minHeight: '100vh', display: 'flex', fontFamily: 'sans-serif' }}>
       {/* Side Nav */}
@@ -429,14 +430,6 @@ export default function PortfolioPage() {
           </select>
         </nav>
 
-        {/* Portfolio Chart Section */}
-        <section style={styles.section}>
-          <h2 style={{ marginTop: 0 }}>Portfolio Chart</h2>
-          <div style={styles.chartPlaceholder}>
-            <p>[insert chart here]</p>
-          </div>
-        </section>
-
         {/* Cash and Stocks Section */}
         <section style={styles.section}>
           <h2 style={{ marginTop: 0 }}>Cash</h2>
@@ -479,7 +472,6 @@ export default function PortfolioPage() {
                   <tr key={index}>
                     <td style={cellStyle}>{stock.symbol}</td>
                     <td style={cellStyle}>{stock.shares}</td>
-                    {/* Here, we round the value to two decimals */}
                     <td style={cellStyle}>${Number(stock.value).toFixed(2)}</td>
                     <td style={{ ...cellStyle, textAlign: 'center' }}>
                       <button style={styles.buyButton} onClick={() => handleBuy(stock)}>
@@ -860,13 +852,5 @@ const styles = {
     borderRadius: '8px',
     padding: '1rem',
     marginBottom: '2rem',
-  },
-  chartPlaceholder: {
-    height: '200px',
-    backgroundColor: '#2a2a2a',
-    borderRadius: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 };

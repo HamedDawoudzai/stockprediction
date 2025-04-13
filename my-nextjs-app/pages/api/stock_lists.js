@@ -1,4 +1,4 @@
-// pages/api/stock_lists.js
+
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -28,7 +28,6 @@ export default async function handler(req, res) {
 
   const { filter, user_id } = req.query;
 
-
   if ((filter === 'private' || filter === 'shared') && !user_id) {
     return res.status(400).json({
       error: 'Missing user_id query parameter for this filter.'
@@ -40,58 +39,46 @@ export default async function handler(req, res) {
     let queryParams = [];
     if (filter === 'public') {
       queryText = `
-        SELECT 
-          sl.stock_list_id,
-          sl.description,
-          sl.visibility,
-          sl.creator_id,
+        SELECT list.stock_list_id, list.description, list.visibility, list.creator_id,
           COALESCE(
-            (SELECT string_agg(ss.shared_with_user_id, ', ')
-             FROM StockListShares ss
-             WHERE ss.stock_list_id = sl.stock_list_id),
+            (SELECT string_agg(shared.shared_with_user_id, ', ')
+             FROM StockListShares shared
+             WHERE shared.stock_list_id = list.stock_list_id),
             ''
           ) AS shared_with
-        FROM StockLists sl
-        WHERE sl.visibility = 'public'
+        FROM StockLists list
+        WHERE list.visibility = 'public'
       `;
     } else if (filter === 'private') {
       queryText = `
-        SELECT 
-          sl.stock_list_id,
-          sl.description,
-          sl.visibility,
-          sl.creator_id,
+        SELECT list.stock_list_id, list.description, list.visibility, list.creator_id,
           COALESCE(
-            (SELECT string_agg(ss.shared_with_user_id, ', ')
-             FROM StockListShares ss
-             WHERE ss.stock_list_id = sl.stock_list_id),
+            (SELECT string_agg(shared.shared_with_user_id, ', ')
+             FROM StockListShares shared
+             WHERE shared.stock_list_id = list.stock_list_id),
             ''
           ) AS shared_with
-        FROM StockLists sl
-        WHERE sl.visibility = 'private'
-          AND sl.creator_id = $1
+        FROM StockLists list
+        WHERE list.visibility = 'private'
+          AND list.creator_id = $1
       `;
       queryParams = [user_id];
     } else if (filter === 'shared') {
       queryText = `
-        SELECT 
-          sl.stock_list_id,
-          sl.description,
-          sl.visibility,
-          sl.creator_id,
+        SELECT list.stock_list_id, list.description, list.visibility, list.creator_id,
           COALESCE(
-            (SELECT string_agg(ss.shared_with_user_id, ', ')
-             FROM StockListShares ss
-             WHERE ss.stock_list_id = sl.stock_list_id),
+            (SELECT string_agg(shared.shared_with_user_id, ', ')
+             FROM StockListShares shared
+             WHERE shared.stock_list_id = list.stock_list_id),
             ''
           ) AS shared_with
-        FROM StockLists sl
-        WHERE sl.visibility = 'shared'
+        FROM StockLists list
+        WHERE list.visibility = 'shared'
           AND (
-            sl.creator_id = $1
+            list.creator_id = $1
             OR EXISTS (
-              SELECT 1 FROM StockListShares ss 
-              WHERE ss.stock_list_id = sl.stock_list_id AND ss.shared_with_user_id = $1
+              SELECT 1 FROM StockListShares shared 
+              WHERE shared.stock_list_id = list.stock_list_id AND shared.shared_with_user_id = $1
             )
           )
       `;

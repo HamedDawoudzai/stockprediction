@@ -1,4 +1,4 @@
-// pages/api/stocks_comparison.js
+
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       ),
       stock_returns AS (
         SELECT symbol, "Timestamp" AS time,
-                ( "Close" - LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") )
+                ( "Close" - LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") )-- Temporarily restricts range to the symbol it self (easier + more optimized than creating a bunch of tables to check each symbl exclusively)
                 / LAG("Close") OVER (PARTITION BY symbol ORDER BY "Timestamp") AS return
         FROM unifiedstockdata
         WHERE symbol IN (SELECT symbol FROM portfolio_symbols)
