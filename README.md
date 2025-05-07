@@ -46,51 +46,45 @@ The application combines **PostgreSQL**, **Next.js**, **React**, and advanced SQ
 - Views and triggers that merge historical and new stock data for live updates.  
 - Fully normalized schema (BCNF / 3 NF) for efficiency.
 
-###Screenshots
+## Screenshots
 
-##Welcome
-<img width="1470" alt="start_page" src="https://github.com/user-attachments/assets/6c8fd76e-b27b-43e6-b91b-eb33b1aa30cb" />
+### Welcome Page
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <img width="45%" alt="start_page" src="https://github.com/user-attachments/assets/6c8fd76e-b27b-43e6-b91b-eb33b1aa30cb" />
+  <img width="45%" alt="login" src="https://github.com/user-attachments/assets/6218bfe4-63b7-402f-aa9e-8ae54c5e7ab0" />
+  <img width="45%" alt="signup" src="https://github.com/user-attachments/assets/2f2e7c57-2cfc-4c10-98fc-b2918efc4ab0" />
+</div>
 
-<img width="1470" alt="login" src="https://github.com/user-attachments/assets/6218bfe4-63b7-402f-aa9e-8ae54c5e7ab0" />
+### Portfolio Operations
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <img width="30%" alt="portfolio" src="https://github.com/user-attachments/assets/ca3a2e5a-ef0b-41de-9bcc-0c4c5769c9dd" />
+  <img width="30%" alt="deposit" src="https://github.com/user-attachments/assets/af3ae566-5b04-4730-a224-92e7baba6d60" />
+  <img width="30%" alt="withdraw" src="https://github.com/user-attachments/assets/8af95534-2f1f-498a-9056-023b9b0e362b" />
+  <img width="30%" alt="transfer" src="https://github.com/user-attachments/assets/6199a00e-9bbd-49d6-b520-d25580a7c2ab" />
+  <img width="30%" alt="create_portfolio" src="https://github.com/user-attachments/assets/0775abf2-f036-4b88-955a-b93575cc20db" />
+</div>
 
-<img width="1470" alt="signup" src="https://github.com/user-attachments/assets/2f2e7c57-2cfc-4c10-98fc-b2918efc4ab0" />
+### Graphs & Predictions
+<div style="display: flex; gap: 10px;">
+  <img width="45%" alt="historical_data" src="https://github.com/user-attachments/assets/90a597ca-9a9e-4d83-9559-e305a42ea2b2" />
+  <img width="45%" alt="price_prediction" src="https://github.com/user-attachments/assets/5e73d684-9359-4796-8bea-0caf044c48de" />
+</div>
 
-##Portfolio Operations
+### Stock Management
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <img width="30%" alt="buying_stock" src="https://github.com/user-attachments/assets/9ab53de7-6455-4d58-ac8b-59d887a0d6a5" />
+  <img width="30%" alt="transactions" src="https://github.com/user-attachments/assets/47b40f44-1e73-45e1-bbf7-c1f3e71dad82" />
+  <img width="30%" alt="add_daily_stock" src="https://github.com/user-attachments/assets/7a58efc4-da7d-495c-b150-48e328680493" />
+</div>
 
-<img width="1470" alt="portfolio" src="https://github.com/user-attachments/assets/ca3a2e5a-ef0b-41de-9bcc-0c4c5769c9dd" />
+### Social Features
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <img width="30%" alt="stock_lists" src="https://github.com/user-attachments/assets/45b76a6e-0e7d-44f9-9036-4d97abdbfaa4" />
+  <img width="30%" alt="create_stock_list" src="https://github.com/user-attachments/assets/7ed8ca46-5f01-464e-ac2b-12cef57dfbcf" />
+  <img width="30%" alt="friends" src="https://github.com/user-attachments/assets/5f9a675c-88ea-465c-9a64-116f6b53206f" />
+</div>
 
-<img width="1470" alt="deposit" src="https://github.com/user-attachments/assets/af3ae566-5b04-4730-a224-92e7baba6d60" />
-
-<img width="1470" alt="withdraw" src="https://github.com/user-attachments/assets/8af95534-2f1f-498a-9056-023b9b0e362b" />
-
-<img width="1470" alt="transfer" src="https://github.com/user-attachments/assets/6199a00e-9bbd-49d6-b520-d25580a7c2ab" />
-
-<img width="1470" alt="create_portfolio" src="https://github.com/user-attachments/assets/0775abf2-f036-4b88-955a-b93575cc20db" />
-
-
-##Graph
-
-<img width="1470" alt="historical_data" src="https://github.com/user-attachments/assets/90a597ca-9a9e-4d83-9559-e305a42ea2b2" />
-
-
-<img width="1470" alt="price_prediction" src="https://github.com/user-attachments/assets/5e73d684-9359-4796-8bea-0caf044c48de" />
-
-##Stock
-
-<img width="1463" alt="buying_stock" src="https://github.com/user-attachments/assets/9ab53de7-6455-4d58-ac8b-59d887a0d6a5" />
-
-<img width="1470" alt="transactions" src="https://github.com/user-attachments/assets/47b40f44-1e73-45e1-bbf7-c1f3e71dad82" />
-
-<img width="1470" alt="add_daily_stock" src="https://github.com/user-attachments/assets/7a58efc4-da7d-495c-b150-48e328680493" />
-
-##Social Network and Stock Lists
-
-<img width="1470" alt="stock_lists" src="https://github.com/user-attachments/assets/45b76a6e-0e7d-44f9-9036-4d97abdbfaa4" />
-
-<img width="1470" alt="create_stock_list" src="https://github.com/user-attachments/assets/7ed8ca46-5f01-464e-ac2b-12cef57dfbcf" />
-
-<img width="1469" alt="friends" src="https://github.com/user-attachments/assets/5f9a675c-88ea-465c-9a64-116f6b53206f" />
-
+---
 ### Technologies Used
 - **Database:** PostgreSQL (views, triggers, caching)  
 - **Backend:** Next.js API routes  
