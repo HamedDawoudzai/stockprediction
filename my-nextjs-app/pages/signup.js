@@ -1,5 +1,8 @@
+// pages/signup.js
+
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function SignupPage() {
   const [username, setUsername] = useState('');
@@ -14,13 +17,12 @@ export default function SignupPage() {
       setMessage('Please fill in all fields.');
       return;
     }
-    
-    const payload = { username, password, firstName, lastName };
+
     try {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ username, password, firstName, lastName }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -28,19 +30,29 @@ export default function SignupPage() {
       } else {
         setMessage(`Error: ${data.error}`);
       }
-    } catch (error) {
-      console.error('Signup error:', error);
+    } catch {
       setMessage('An unexpected error occurred.');
     }
   };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Welcome to H&R Investments</h1>
-      <div style={styles.formContainer}>
-        <h2 style={styles.heading}>Sign Up</h2>
+      {/* Logo */}
+      <div style={styles.logoWrapper}>
+        <Image
+          src="/hd-logo.png"
+          alt="HD Investments"
+          width={200}
+          height={80}
+        />
+      </div>
+
+      {/* Signup card */}
+      <div style={styles.card}>
+        <h1 style={styles.title}>Welcome to HD Investments</h1>
+        <h2 style={styles.subtitle}>Sign Up</h2>
+
         <form onSubmit={handleSignup} style={styles.form}>
-          <label style={styles.label}>Username</label>
           <input
             type="text"
             value={username}
@@ -48,7 +60,6 @@ export default function SignupPage() {
             style={styles.input}
             placeholder="Choose a username"
           />
-          <label style={styles.label}>Password</label>
           <input
             type="password"
             value={password}
@@ -56,7 +67,6 @@ export default function SignupPage() {
             style={styles.input}
             placeholder="Create a password"
           />
-          <label style={styles.label}>First Name</label>
           <input
             type="text"
             value={firstName}
@@ -64,7 +74,6 @@ export default function SignupPage() {
             style={styles.input}
             placeholder="Your first name"
           />
-          <label style={styles.label}>Last Name</label>
           <input
             type="text"
             value={lastName}
@@ -72,11 +81,14 @@ export default function SignupPage() {
             style={styles.input}
             placeholder="Your last name"
           />
+
           <button type="submit" style={styles.button}>
             Sign Up
           </button>
         </form>
+
         {message && <p style={styles.message}>{message}</p>}
+
         <p style={styles.linkText}>
           Already have an account?{' '}
           <Link href="/login" passHref>
@@ -91,65 +103,71 @@ export default function SignupPage() {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#111',
-    color: '#fff',
+    backgroundColor: '#000',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    fontFamily: 'sans-serif',
     padding: '20px',
   },
-  title: {
-    textAlign: 'center',
-    marginBottom: '40px',
-    fontSize: '2rem',
+  logoWrapper: {
+    marginBottom: '30px',
   },
-  formContainer: {
-    backgroundColor: '#222',
-    padding: '20px',
-    borderRadius: '8px',
+  card: {
+    backgroundColor: '#111',
+    padding: '40px 30px',
+    borderRadius: '12px',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.8)',
     width: '100%',
     maxWidth: '400px',
-  },
-  heading: {
-    marginTop: 0,
-    marginBottom: '20px',
-    fontSize: '1.5rem',
     textAlign: 'center',
+  },
+  title: {
+    color: '#fff',
+    fontSize: '2.5rem',
+    marginBottom: '10px',
+    // inherits cursive font from globals.css
+  },
+  subtitle: {
+    color: '#999',
+    fontSize: '1.5rem',
+    marginBottom: '30px',
+    // inherits cursive font from globals.css
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-  },
-  label: {
-    marginBottom: '5px',
+    gap: '15px',
   },
   input: {
-    padding: '10px',
-    marginBottom: '15px',
-    border: '1px solid #444',
-    borderRadius: '4px',
-    backgroundColor: '#333',
+    padding: '12px 15px',
+    borderRadius: '8px',
+    border: '1px solid #333',
+    backgroundColor: '#222',
     color: '#fff',
+    fontSize: '1rem',
+    outline: 'none',
   },
   button: {
-    padding: '10px',
-    backgroundColor: '#444',
+    padding: '12px 20px',
+    backgroundColor: '#39d39f',
     border: 'none',
     color: '#fff',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '1rem',
+    fontWeight: 'bold',
+    transition: 'background-color 0.3s ease',
   },
   message: {
-    marginTop: '15px',
-    color: '#0f0',
-    textAlign: 'center',
+    marginTop: '20px',
+    color: '#4CAF50',
+    fontWeight: 'bold',
   },
   linkText: {
-    marginTop: '15px',
-    textAlign: 'center',
+    marginTop: '25px',
+    color: '#aaa',
+    fontSize: '0.95rem',
   },
   link: {
     color: '#39d39f',

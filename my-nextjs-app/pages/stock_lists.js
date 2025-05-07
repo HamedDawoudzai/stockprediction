@@ -709,6 +709,9 @@ export default function StockListsPage() {
           <Link href="/stock_lists" passHref>
             <div style={styles.sideNavItem}>Stocklists</div>
           </Link>
+          <Link href="/add_daily_stock" passHref>
+            <div style={styles.sideNavItem}>Add daily stock</div>
+          </Link>
         </div>
         <button onClick={handleLogout} style={styles.logoutButton}>
           Log Out
@@ -798,16 +801,17 @@ export default function StockListsPage() {
     </div>
   );
 }
-
 const styles = {
+  // full-screen black bg
   pageContainer: {
     display: 'flex',
     minHeight: '100vh',
-    backgroundColor: '#0b0b0b',
+    backgroundColor: '#000',
     fontFamily: 'Helvetica, Arial, sans-serif',
     color: '#fff',
-    position: 'relative',
   },
+
+  // side nav stays dark
   sidebar: {
     width: '250px',
     backgroundColor: '#111',
@@ -818,163 +822,227 @@ const styles = {
   },
   sideNavItem: {
     cursor: 'pointer',
-    padding: '10px',
+    padding: '12px 8px',
     borderBottom: '1px solid #333',
     color: '#fff',
-    fontSize: '1rem',
+    fontFamily: '"Playfair Display", cursive',
   },
+
   logoutButton: {
     backgroundColor: 'red',
-    color: 'white',
+    color: '#fff',
     padding: '10px',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    marginTop: 'auto',
+    fontFamily: '"Playfair Display", cursive',
   },
+
+  // main content area
   mainContent: {
     flexGrow: 1,
     padding: '2rem',
-    backgroundColor: '#0b0b0b',
+    backgroundColor: '#000',
   },
   mainHeader: {
     fontSize: '2.5rem',
     marginBottom: '1rem',
+    fontFamily: '"Playfair Display", cursive',
+    color: '#fff',
   },
+
+  // tabs
   tabContainer: {
     display: 'flex',
     gap: '1rem',
-    marginBottom: '1rem',
-    alignItems: 'center',
+    marginBottom: '1.5rem',
   },
   tabButton: {
-    backgroundColor: '#fff',
-    color: '#000',
-    border: 'none',
-    padding: '0.5rem 1rem',
-    cursor: 'pointer',
-    borderRadius: '4px',
-    fontWeight: '500',
-  },
-  tabButtonActive: {
-    backgroundColor: '#007BFF',
+    flex: 1,
+    backgroundColor: '#222',
     color: '#fff',
     border: 'none',
-    padding: '0.5rem 1rem',
+    padding: '0.75rem',
+    borderRadius: '6px',
     cursor: 'pointer',
-    borderRadius: '4px',
-    fontWeight: '600',
+    fontFamily: '"Playfair Display", cursive',
+    transition: 'background-color 0.2s',
   },
+  tabButtonActive: {
+    flex: 1,
+    backgroundColor: '#39d39f',
+    color: '#fff',
+    border: 'none',
+    padding: '0.75rem',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontFamily: '"Playfair Display", cursive',
+    fontWeight: 'bold',
+  },
+
+  // listing container
   contentStyle: {
-    backgroundColor: '#1c1c1c',
+    backgroundColor: '#111',
     borderRadius: '8px',
-    padding: '1rem',
+    padding: '1.5rem',
   },
   pageHeader: {
-    marginBottom: '1rem',
     fontSize: '1.75rem',
+    marginBottom: '1rem',
     textAlign: 'center',
+    color: '#fff',
   },
-  noLists: {
-    textAlign: 'center',
-    fontSize: '1.1rem',
-    color: '#ccc',
-  },
+
+  // cards in the list
   card: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#222',
     padding: '1rem',
     borderRadius: '8px',
     marginBottom: '1rem',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.6)',
     cursor: 'pointer',
-    transition: 'transform 0.2s',
   },
   cardTitle: {
     fontSize: '1.5rem',
     marginBottom: '0.5rem',
+    color: '#fff',
   },
   cardText: {
-    fontSize: '1rem',
+    color: '#ccc',
     marginBottom: '0.5rem',
-    color: '#ddd',
   },
   cardSubText: {
+    color: '#888',
     fontSize: '0.9rem',
-    color: '#aaa',
   },
-  changeStatusButton: {
-    backgroundColor: '#007BFF',
+
+  // buttons inside cards / modals
+  shareButton: {
+    padding: '0.6rem 1.2rem',
+    backgroundColor: '#39d39f',
     color: '#fff',
     border: 'none',
-    padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '0.8rem',
-    marginRight: '0.5rem',
+    fontFamily: '"Playfair Display", cursive',
   },
+  cancelButton: {
+    padding: '0.6rem 1.2rem',
+    backgroundColor: '#555',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontFamily: '"Playfair Display", cursive',
+  },
+  deleteConfirmButton: {
+    padding: '0.6rem 1.2rem',
+    backgroundColor: '#d9534f',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontFamily: '"Playfair Display", cursive',
+  },
+
+  // modal overlay + window
   modalOverlay: {
     position: 'fixed',
-    top: 0,
-    left: 0,
+    top: 0, left: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.95)',
     display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: '#1c1c1c',
+    backgroundColor: '#111',
     borderRadius: '8px',
-    padding: '1.5rem',
+    padding: '2rem',
     width: '90%',
-    maxWidth: '800px',
-    minHeight: '400px',
+    maxWidth: '700px',
     position: 'relative',
+    boxShadow: '0 12px 32px rgba(0,0,0,0.8)',
   },
+
+  // inner modal body matches other cards
+  modalBody: {
+    backgroundColor: '#222',
+    borderRadius: '6px',
+    padding: '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
+
   modalHeader: {
     display: 'flex',
-    justifyContent: 'space-around',
-    borderBottom: '1px solid #444',
-    paddingBottom: '0.5rem',
-    marginBottom: '1rem',
-    alignItems: 'center',
+    gap: '1rem',
+    borderBottom: '1px solid #333',
+    paddingBottom: '1rem',
+    marginBottom: '1.5rem',
   },
   modalTab: {
-    backgroundColor: '#444',
+    flex: 1,
+    backgroundColor: '#222',
     color: '#fff',
-    padding: '0.5rem 1rem',
+    padding: '0.75rem',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
+    fontFamily: '"Playfair Display", cursive',
   },
   modalTabActive: {
-    backgroundColor: '#007BFF',
+    flex: 1,
+    backgroundColor: '#39d39f',
     color: '#fff',
-    padding: '0.5rem 1rem',
+    padding: '0.75rem',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
+    fontFamily: '"Playfair Display", cursive',
+    fontWeight: 'bold',
   },
   closeModalButton: {
     position: 'absolute',
-    top: '0.5rem',
-    right: '0.5rem',
-    backgroundColor: 'transparent',
+    top: '1rem',
+    right: '1rem',
+    background: 'transparent',
     border: 'none',
     color: '#fff',
     fontSize: '1.5rem',
     cursor: 'pointer',
   },
-  modalBody: {
-    color: '#ddd',
-    fontSize: '1rem',
+
+  // form inputs & tables
+  inputField: {
+    width: '100%',
+    padding: '0.75rem',
+    borderRadius: '6px',
+    border: '1px solid #333',
+    backgroundColor: '#222',
+    color: '#fff',
   },
-  modalSectionTitle: {
-    fontSize: '1.25rem',
-    marginBottom: '0.75rem',
+  inputLabel: {
+    display: 'block',
+    marginBottom: '0.5rem',
+    color: '#ccc',
+    fontFamily: '"Playfair Display", cursive',
   },
+
+  changeStatusButton: {
+    padding: '0.3rem 1.0rem',        // ↓ less vertical space
+    backgroundColor: '#39d39f',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontFamily: '"Playfair Display", cursive',
+    fontWeight: 'bold',
+  },
+
   stockListContainer: {
     width: '100%',
     overflowX: 'auto',
@@ -997,88 +1065,53 @@ const styles = {
     borderBottom: '1px solid #555',
     color: '#fff',
   },
-  inputField: {
-    width: '100%',
-    padding: '0.5rem',
-    marginBottom: '0.5rem',
-    borderRadius: '4px',
-    border: '1px solid #555',
-    backgroundColor: '#333',
-    color: '#fff',
-  },
-  inputLabel: {
-    marginBottom: '0.25rem',
-    fontWeight: 'bold',
-  },
-  shareButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#007BFF',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  cancelButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#ccc',
-    color: '#000',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  deleteConfirmButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: 'green',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  deleteCancelButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: 'red',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
+
+  // “toast” notification
   notification: {
     position: 'fixed',
     bottom: '20px',
     left: '50%',
     transform: 'translateX(-50%)',
-    padding: '1rem 1.5rem',
-    color: '#fff',
-    fontSize: '1rem',
+    backgroundColor: '#39d39f',
+    color: '#000',
+    padding: '0.75rem 1.5rem',
     borderRadius: '6px',
-    zIndex: 1100,
+    fontFamily: '"Playfair Display", cursive',
   },
+
+  // review sub-tabs
   reviewTabContainer: {
     display: 'flex',
     gap: '1rem',
     marginBottom: '1rem',
   },
   subTab: {
+    flex: 1,
     backgroundColor: '#444',
     color: '#fff',
-    padding: '0.5rem 1rem',
+    padding: '0.75rem',
+    border: 'none',
+    borderRadius: '6px',
     cursor: 'pointer',
-    borderRadius: '4px',
-    fontSize: '0.9rem',
+    fontFamily: '"Playfair Display", cursive',
   },
   subTabActive: {
-    backgroundColor: '#007BFF',
+    flex: 1,
+    backgroundColor: '#39d39f',
     color: '#fff',
-    padding: '0.5rem 1rem',
+    padding: '0.75rem',
+    border: 'none',
+    borderRadius: '6px',
     cursor: 'pointer',
-    borderRadius: '4px',
-    fontSize: '0.9rem',
+    fontFamily: '"Playfair Display", cursive',
+    fontWeight: 'bold',
   },
+
+  // review cards & stats tables
   reviewCard: {
     backgroundColor: '#2a2a2a',
     borderRadius: '6px',
-    padding: '0.75rem',
-    marginBottom: '0.75rem',
+    padding: '1rem',
   },
   reviewSubText: {
     fontSize: '0.8rem',
@@ -1087,11 +1120,13 @@ const styles = {
   statsTable: {
     width: '100%',
     borderCollapse: 'collapse',
-    marginTop: '0.5rem',
+    marginTop: '1rem',
   },
   cellStyle: {
     border: '1px solid #333',
     padding: '8px',
   },
 };
+
+
 

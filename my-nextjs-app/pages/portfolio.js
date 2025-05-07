@@ -355,7 +355,7 @@ export default function PortfolioPage() {
   };
 
   return (
-    <div style={{ backgroundColor: '#0b0b0b', color: '#fff', minHeight: '100vh', display: 'flex', fontFamily: 'sans-serif' }}>
+    <div style={{ backgroundColor: '#0b0b0b', color: '#fff', minHeight: '100vh', display: 'flex'}}>
       {/* Side Nav */}
       <nav style={{ width: '250px', backgroundColor: '#111', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
@@ -393,7 +393,7 @@ export default function PortfolioPage() {
       <main style={{ flexGrow: 1, padding: '2rem' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.8rem' }}>
+            <h1 style={{ margin: 0, fontSize: '1.8rem', ...styles.timesNewRoman }}>
               Total Balance: {totalBalance !== null ? `$${totalBalance}` : '[insert total balance here]'}
             </h1>
             <p style={{ margin: 0, color: '#39d39f' }}>[Total Balance includes cash + stocks]</p>
@@ -431,7 +431,7 @@ export default function PortfolioPage() {
         </nav>
 
         {/* Cash and Stocks Section */}
-        <section style={styles.section}>
+        <section style={{ ...styles.section, ...styles.timesNewRoman }}>
           <h2 style={{ marginTop: 0 }}>Cash</h2>
           <p>{cashBalance !== null ? `$${cashBalance}` : '[insert cash balance here]'}</p>
 
@@ -787,70 +787,107 @@ const notificationStyle = (type) => ({
 });
 
 const styles = {
+  timesNewRoman: {
+    fontFamily: "'Times New Roman', serif",
+  },
   sideNavItem: {
     cursor: 'pointer',
     padding: '10px',
     borderBottom: '1px solid #333',
+    color: '#fff',
   },
   logoutButton: {
     backgroundColor: 'red',
-    color: 'white',
-    padding: '10px',
+    color: '#fff',
+    padding: '12px',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
     marginTop: 'auto',
+    fontWeight: 'bold',
+    fontSize: '1rem',
   },
   whiteButton: {
-    backgroundColor: '#fff',
-    color: '#000',
-    border: 'none',
+    backgroundColor: '#222',
+    color: '#fff',
+    border: '1px solid #444',
     padding: '0.5rem 1rem',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontSize: '0.95rem',
   },
   outlinedButton: {
     backgroundColor: 'transparent',
     color: '#fff',
     border: '1px solid #fff',
     padding: '0.5rem 1rem',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontSize: '0.95rem',
   },
   maxButton: {
     backgroundColor: '#007BFF',
     color: '#fff',
     border: 'none',
     padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontWeight: 'bold',
   },
   buyButton: {
-    backgroundColor: 'green',
+    backgroundColor: '#39d39f',
     color: '#fff',
     border: 'none',
     padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontWeight: 'bold',
   },
   sellButton: {
     backgroundColor: 'red',
     color: '#fff',
     border: 'none',
     padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontWeight: 'bold',
   },
   cancelButton: {
-    backgroundColor: '#ccc',
-    color: '#000',
-    border: 'none',
+    backgroundColor: '#333',
+    color: '#fff',
+    border: '1px solid #555',
     padding: '0.3rem 0.6rem',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontSize: '0.9rem',
   },
   section: {
-    backgroundColor: '#1c1c1c',
-    borderRadius: '8px',
+    backgroundColor: '#111',
+    borderRadius: '12px',
     padding: '1rem',
     marginBottom: '2rem',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
   },
+  headerRightButtons: {
+    display: 'flex',
+    gap: '0.5rem',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  smallGrayButton: {
+    backgroundColor: '#222',
+    color: '#aaa',
+    border: '1px solid #444',
+    padding: '0.3rem 0.8rem',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontFamily: 'sans-serif',
+    fontSize: '0.85rem',
+  },
+  fancyHeader: {
+    fontFamily: '"Playfair Display", serif',
+  }
 };
+
+
+

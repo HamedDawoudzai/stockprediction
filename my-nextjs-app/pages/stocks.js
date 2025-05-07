@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-
 function formatDate(timestamp) {
   const date = new Date(timestamp);
   const day = String(date.getDate()).padStart(2, '0');
@@ -44,14 +43,12 @@ export default function StocksPage() {
     router.push('/login');
   };
 
-  
   const handleBuy = (stock) => {
     setBuyStock(stock);
     setBuyDollarAmount('');
     setShowBuyModal(true);
   };
 
- 
   const showNotification = (message, type) => {
     setNotification({ message, type });
     setTimeout(() => {
@@ -63,10 +60,8 @@ export default function StocksPage() {
     const amount = parseFloat(buyDollarAmount);
     if (amount && !isNaN(amount) && amount > 0) {
       const calculatedShares = parseFloat((amount / buyStock.Close).toFixed(2));
-      
-     
       const portfolioId = localStorage.getItem('current_portfolio_id');
-      console.log('Using portfolio ID:', portfolioId);
+
       if (!portfolioId) {
         showNotification('No portfolio selected. Please create or select a portfolio.', 'error');
         setShowBuyModal(false);
@@ -86,21 +81,18 @@ export default function StocksPage() {
           }),
         });
         if (res.ok) {
-          showNotification(
-            `Purchase successful: You spent $${amount} to buy ~${calculatedShares} shares of ${buyStock.Symbol}.`,
-            'success'
-          );
+          showNotification(`✅ Purchase successful: $${amount} -> ~${calculatedShares} shares of ${buyStock.Symbol}.`, 'success');
         } else {
           const errData = await res.json();
-          showNotification(`Purchase denied: ${errData.error}`, 'error');
+          showNotification(`❗ Purchase denied: ${errData.error}`, 'error');
         }
       } catch (err) {
         console.error('Error during purchase:', err);
-        showNotification('An error occurred during purchase.', 'error');
+        showNotification('❗ An error occurred during purchase.', 'error');
       }
       setShowBuyModal(false);
     } else {
-      showNotification('Please enter a valid dollar amount.', 'error');
+      showNotification('❗ Please enter a valid dollar amount.', 'error');
     }
   };
 
@@ -109,78 +101,54 @@ export default function StocksPage() {
   };
 
   return (
-    <div
-      style={{
-        backgroundColor: '#0b0b0b',
-        color: '#fff',
-        minHeight: '100vh',
-        display: 'flex',
-        fontFamily: 'sans-serif',
-        position: 'relative',
-      }}
-    >
+    <div style={styles.container}>
       {/* Sidebar Navigation */}
-      <nav
-        style={{
-          width: '250px',
-          backgroundColor: '#111',
-          padding: '1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}
-      >
+      <nav style={styles.sideNav}>
         <div>
-          <Link href="/portfolio" passHref>
-            <div style={styles.sideNavItem}>Portfolio</div>
-          </Link>
-          <Link href="/transactions" passHref>
-            <div style={styles.sideNavItem}>Orders</div>
-          </Link>
-          <Link href="/create_portfolio" passHref>
-            <div style={styles.sideNavItem}>Create Portfolio</div>
-          </Link>
-          {/* Stocks option intentionally removed */}
+          <Link href="/portfolio" passHref><div style={styles.sideNavItem}>Portfolio</div></Link>
+          <Link href="/transactions" passHref><div style={styles.sideNavItem}>Orders</div></Link>
+          <Link href="/create_portfolio" passHref><div style={styles.sideNavItem}>Create Portfolio</div></Link>
+          <Link href="/stocks" passHref><div style={styles.sideNavItem}>Stocks</div></Link>
+          <Link href="/friends" passHref><div style={styles.sideNavItem}>Friends</div></Link>
+          <Link href="/create_stock_list" passHref><div style={styles.sideNavItem}>Create stocklist</div></Link>
+          <Link href="/stock_lists" passHref><div style={styles.sideNavItem}>Stocklists</div></Link>
+          <Link href="/add_daily_stock" passHref><div style={styles.sideNavItem}>Add daily stock</div></Link>
         </div>
-        <button onClick={handleLogout} style={styles.logoutButton}>
-          Log Out
-        </button>
+        <button onClick={handleLogout} style={styles.logoutButton}>Log Out</button>
       </nav>
 
       {/* Main Content */}
-      <main style={{ flexGrow: 1, padding: '2rem' }}>
-        <h1 style={{ marginBottom: '1rem' }}>Stocks Information</h1>
+      <main style={styles.mainContent}>
+        <h1 style={styles.heading}>Stocks Information</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         {stocks.length === 0 ? (
           <p>No stock data available.</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={styles.table}>
             <thead>
               <tr>
-                <th style={cellStyle}>Symbol</th>
-                <th style={cellStyle}>Open</th>
-                <th style={cellStyle}>High</th>
-                <th style={cellStyle}>Low</th>
-                <th style={cellStyle}>Close</th>
-                <th style={cellStyle}>Volume</th>
-                <th style={cellStyle}>Timestamp</th>
-                <th style={cellStyle}>Action</th>
+                <th style={styles.tableHeaderCell}>Symbol</th>
+                <th style={styles.tableHeaderCell}>Open</th>
+                <th style={styles.tableHeaderCell}>High</th>
+                <th style={styles.tableHeaderCell}>Low</th>
+                <th style={styles.tableHeaderCell}>Close</th>
+                <th style={styles.tableHeaderCell}>Volume</th>
+                <th style={styles.tableHeaderCell}>Date</th>
+                <th style={styles.tableHeaderCell}>Action</th>
               </tr>
             </thead>
             <tbody>
               {stocks.map((stock, index) => (
                 <tr key={index}>
-                  <td style={cellStyle}>{stock.Symbol}</td>
-                  <td style={cellStyle}>{stock.Open}</td>
-                  <td style={cellStyle}>{stock.High}</td>
-                  <td style={cellStyle}>{stock.Low}</td>
-                  <td style={cellStyle}>{stock.Close}</td>
-                  <td style={cellStyle}>{stock.Volume}</td>
-                  <td style={cellStyle}>{formatDate(stock.Timestamp)}</td>
-                  <td style={cellStyle}>
-                    <button onClick={() => handleBuy(stock)} style={styles.buyButton}>
-                      Buy
-                    </button>
+                  <td style={styles.tableCell}>{stock.Symbol}</td>
+                  <td style={styles.tableCell}>{stock.Open}</td>
+                  <td style={styles.tableCell}>{stock.High}</td>
+                  <td style={styles.tableCell}>{stock.Low}</td>
+                  <td style={styles.tableCell}>{stock.Close}</td>
+                  <td style={styles.tableCell}>{stock.Volume}</td>
+                  <td style={styles.tableCell}>{formatDate(stock.Timestamp)}</td>
+                  <td style={styles.tableCell}>
+                    <button onClick={() => handleBuy(stock)} style={styles.buyButton}>Buy</button>
                   </td>
                 </tr>
               ))}
@@ -189,52 +157,32 @@ export default function StocksPage() {
         )}
       </main>
 
-      {/* In-app Modal for Buying Shares */}
+      {/* Buy Modal */}
       {showBuyModal && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h2 style={{ marginBottom: '10px' }}>
-              Buy shares of {buyStock?.Symbol}
-            </h2>
-            <p style={{ marginBottom: '20px' }}>How much would you like to buy?</p>
-            <p style={{ marginBottom: '20px' }}>Close Price: ${buyStock?.Close}</p>
-            <label style={{ display: 'block', marginBottom: '10px' }}>
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h2>Buy shares of {buyStock?.Symbol}</h2>
+            <p>How much would you like to buy?</p>
+            <p>Close Price: ${buyStock?.Close}</p>
+            <label>
               Dollar Amount:
               <input
                 type="number"
                 value={buyDollarAmount}
                 onChange={(e) => setBuyDollarAmount(e.target.value)}
-                style={inputStyle}
+                style={styles.input}
               />
             </label>
-            <div style={modalButtonsStyle}>
-              <button onClick={handleConfirmBuy} style={styles.buyButton}>
-                Confirm
-              </button>
-              <button onClick={handleCancelBuy} style={styles.cancelButton}>
-                Cancel
-              </button>
+            <div style={styles.modalButtons}>
+              <button onClick={handleConfirmBuy} style={styles.buyButton}>Confirm</button>
+              <button onClick={handleCancelBuy} style={styles.cancelButton}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Notification Popup */}
       {notification && (
-        <div style={{ 
-          position: 'fixed', 
-          bottom: '20px', 
-          left: '50%', 
-          transform: 'translateX(-50%)',
-          backgroundColor: notification.type === 'success' ? '#4CAF50' : '#F44336',
-          color: '#fff',
-          padding: '15px 30px',
-          borderRadius: '25px',
-          boxShadow: '0px 0px 10px rgba(0,0,0,0.3)',
-          zIndex: 1100,
-          fontFamily: 'sans-serif',
-          fontSize: '16px'
-        }}>
+        <div style={styles.notification(notification.type)}>
           {notification.message}
         </div>
       )}
@@ -242,77 +190,127 @@ export default function StocksPage() {
   );
 }
 
-const cellStyle = {
-  border: '1px solid #333',
-  padding: '8px',
-};
-
-const modalOverlayStyle = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
-};
-
-const modalContentStyle = {
-  backgroundColor: '#222',
-  color: '#fff',
-  borderRadius: '8px',
-  padding: '30px',
-  width: '400px',
-  textAlign: 'center',
-  fontFamily: 'Times New Roman, serif',
-};
-
-const modalButtonsStyle = {
-  marginTop: '20px',
-  display: 'flex',
-  justifyContent: 'space-around',
-};
-
-const inputStyle = {
-  marginTop: '10px',
-  padding: '8px',
-  width: '90%',
-  borderRadius: '4px',
-  border: '1px solid #ccc',
-};
-
 const styles = {
+  container: {
+    backgroundColor: '#0b0b0b',
+    color: '#fff',
+    minHeight: '100vh',
+    display: 'flex',
+  },
+  sideNav: {
+    width: '250px',
+    backgroundColor: '#000',
+    padding: '1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
   sideNavItem: {
     cursor: 'pointer',
-    padding: '10px',
+    padding: '12px',
     borderBottom: '1px solid #333',
+    color: '#fff',
+    fontFamily: '"Playfair Display", cursive',
+    fontSize: '1.1rem',
   },
   logoutButton: {
     backgroundColor: 'red',
-    color: 'white',
-    padding: '10px',
+    color: '#fff',
+    padding: '12px',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
     marginTop: 'auto',
+    fontWeight: 'bold',
+  },
+  mainContent: {
+    flexGrow: 1,
+    padding: '3rem',
+  },
+  heading: {
+    fontSize: '2rem',
+    fontFamily: '"Times New Roman", serif',
+    marginBottom: '20px',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+  },
+  tableHeaderCell: {
+    border: '1px solid #333',
+    padding: '12px',
+    textAlign: 'center',
+    fontFamily: '"Times New Roman", serif',
+    fontWeight: 'bold',
+  },
+  tableCell: {
+    border: '1px solid #333',
+    padding: '12px',
+    textAlign: 'center',
+    fontFamily: '"Times New Roman", serif',
   },
   buyButton: {
-    backgroundColor: 'green',
-    color: 'white',
-    padding: '5px 10px',
+    backgroundColor: '#39d39f',
+    color: '#fff',
+    padding: '8px 12px',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
   },
   cancelButton: {
-    backgroundColor: '#ccc',
-    color: '#000',
-    padding: '5px 10px',
+    backgroundColor: '#444',
+    color: '#fff',
+    padding: '8px 12px',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
   },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: '#222',
+    color: '#fff',
+    padding: '30px',
+    borderRadius: '12px',
+    width: '400px',
+    textAlign: 'center',
+    fontFamily: '"Times New Roman", serif',
+  },
+  modalButtons: {
+    marginTop: '20px',
+    display: 'flex',
+    justifyContent: 'space-around',
+  },
+  input: {
+    marginTop: '10px',
+    padding: '10px',
+    width: '90%',
+    borderRadius: '4px',
+    border: '1px solid #444',
+    backgroundColor: '#111',
+    color: '#fff',
+  },
+  notification: (type) => ({
+    position: 'fixed',
+    bottom: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: type === 'success' ? '#4CAF50' : '#F44336',
+    color: '#fff',
+    padding: '15px 30px',
+    borderRadius: '25px',
+    fontSize: '1rem',
+    zIndex: 1100,
+    fontFamily: '"Times New Roman", serif',
+  }),
 };

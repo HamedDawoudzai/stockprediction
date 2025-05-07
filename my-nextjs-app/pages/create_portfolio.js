@@ -7,13 +7,11 @@ export default function CreatePortfolioPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const router = useRouter();
 
-  
   useEffect(() => {
     const storedUser = localStorage.getItem('user_id');
     if (storedUser) {
       setCurrentUser(storedUser);
     } else {
-   
       router.push('/login');
     }
   }, [router]);
@@ -21,11 +19,11 @@ export default function CreatePortfolioPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!portfolioName) {
-      setMessage('Please enter a portfolio name.');
+      setMessage('❗ Please enter a portfolio name.');
       return;
     }
     if (!currentUser) {
-      setMessage('User not logged in. Please log in.');
+      setMessage('❗ User not logged in. Please log in.');
       return;
     }
 
@@ -37,23 +35,21 @@ export default function CreatePortfolioPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage('Portfolio created successfully!');
-     
+        setMessage('✅ Portfolio created successfully!');
         router.push('/portfolio');
       } else {
-        setMessage(`Error: ${data.error}`);
+        setMessage(`❗ Error: ${data.error}`);
       }
     } catch (error) {
       console.error('Error creating portfolio:', error);
-      setMessage('An unexpected error occurred.');
+      setMessage('❗ An unexpected error occurred.');
     }
   };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Welcome to H&R Investments</h1>
+      <h1 style={styles.title}>Create Portfolio</h1>
       <div style={styles.formContainer}>
-        <h2 style={styles.heading}>Create Portfolio</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>Portfolio Name</label>
           <input
@@ -74,60 +70,65 @@ export default function CreatePortfolioPage() {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#111',
+    backgroundColor: '#0b0b0b',
     color: '#fff',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    fontFamily: 'sans-serif',
     padding: '20px',
   },
   title: {
     textAlign: 'center',
     marginBottom: '40px',
-    fontSize: '2rem',
+    fontSize: '2.4rem',
+    fontFamily: '"Times New Roman", serif',
   },
   formContainer: {
-    backgroundColor: '#222',
-    padding: '20px',
-    borderRadius: '8px',
+    backgroundColor: '#111',
+    padding: '30px',
+    borderRadius: '12px',
     width: '100%',
     maxWidth: '400px',
-  },
-  heading: {
-    marginTop: 0,
-    marginBottom: '20px',
-    fontSize: '1.5rem',
-    textAlign: 'center',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
+    gap: '1rem',
   },
   label: {
-    marginBottom: '5px',
+    fontFamily: '"Playfair Display", cursive',
+    fontSize: '1rem',
   },
   input: {
-    padding: '10px',
-    marginBottom: '15px',
+    padding: '14px 16px',
+    borderRadius: '8px',
     border: '1px solid #444',
-    borderRadius: '4px',
-    backgroundColor: '#333',
+    backgroundColor: '#222',
     color: '#fff',
+    fontSize: '1rem',
+    boxSizing: 'border-box',
+    width: '100%',
   },
   button: {
-    padding: '10px',
-    backgroundColor: '#444',
+    padding: '12px',
+    backgroundColor: '#39d39f',
     border: 'none',
     color: '#fff',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
+    fontWeight: 'bold',
     fontSize: '1rem',
   },
   message: {
-    marginTop: '15px',
-    color: '#0f0',
+    marginTop: '20px',
+    padding: '12px',
+    borderRadius: '8px',
+    backgroundColor: '#111',
+    color: '#4CAF50',
     textAlign: 'center',
+    fontSize: '1rem',
+    whiteSpace: 'pre-line',
   },
 };

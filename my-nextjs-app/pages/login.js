@@ -1,6 +1,9 @@
+// pages/login.js
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -10,7 +13,6 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     if (username && password) {
       try {
         const res = await fetch('/api/login', {
@@ -19,18 +21,13 @@ export default function LoginPage() {
           body: JSON.stringify({ username, password }),
         });
         const data = await res.json();
-
         if (res.ok) {
-          
           localStorage.setItem('user_id', data.user.user_id);
-          setMessage(`Logged in as ${username}. Redirecting...`);
-          
           router.push('/portfolio');
         } else {
           setMessage(`Error: ${data.error}`);
         }
-      } catch (error) {
-        console.error('Login error:', error);
+      } catch {
         setMessage('An unexpected error occurred.');
       }
     } else {
@@ -40,28 +37,36 @@ export default function LoginPage() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Welcome to H&R Investments</h1>
-      <div style={styles.formContainer}>
-        <h2 style={styles.heading}>Login</h2>
+      {/* Logo above everything */}
+      <div style={styles.logoWrapper}>
+        <Image
+          src="/hd-logo.png"
+          alt="HD Investments"
+          width={200}
+          height={80}
+        />
+      </div>
+
+      {/* Login card */}
+      <div style={styles.card}>
+        <h1 style={styles.title}>Welcome to HD Investments</h1>
+        <h2 style={styles.subtitle}>Login</h2>
+
         <form onSubmit={handleLogin} style={styles.form}>
-          <label style={styles.label}>Username</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             style={styles.input}
-            placeholder="Enter your username"
+            placeholder="Username"
           />
-
-          <label style={styles.label}>Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             style={styles.input}
-            placeholder="Enter your password"
+            placeholder="Password"
           />
-
           <button type="submit" style={styles.button}>
             Login
           </button>
@@ -83,65 +88,71 @@ export default function LoginPage() {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#111',
-    color: '#fff',
+    backgroundColor: '#000',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    fontFamily: 'sans-serif',
     padding: '20px',
   },
-  title: {
-    textAlign: 'center',
-    marginBottom: '40px',
-    fontSize: '2rem',
+  logoWrapper: {
+    marginBottom: '30px',
   },
-  formContainer: {
-    backgroundColor: '#222',
-    padding: '20px',
-    borderRadius: '8px',
+  card: {
+    backgroundColor: '#111',
+    padding: '40px 30px',
+    borderRadius: '12px',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.8)',
     width: '100%',
     maxWidth: '400px',
-  },
-  heading: {
-    marginTop: 0,
-    marginBottom: '20px',
-    fontSize: '1.5rem',
     textAlign: 'center',
+  },
+  title: {
+    color: '#fff',
+    fontSize: '2.5rem',
+    marginBottom: '10px',
+    // inherits cursive font from globals.css
+  },
+  subtitle: {
+    color: '#999',
+    fontSize: '1.5rem',
+    marginBottom: '30px',
+    // inherits cursive font from globals.css
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-  },
-  label: {
-    marginBottom: '5px',
+    gap: '15px',
   },
   input: {
-    padding: '10px',
-    marginBottom: '15px',
-    border: '1px solid #444',
-    borderRadius: '4px',
-    backgroundColor: '#333',
+    padding: '12px 15px',
+    borderRadius: '8px',
+    border: '1px solid #333',
+    backgroundColor: '#222',
     color: '#fff',
+    fontSize: '1rem',
+    outline: 'none',
   },
   button: {
-    padding: '10px',
-    backgroundColor: '#444',
+    padding: '12px 20px',
+    backgroundColor: '#39d39f',
     border: 'none',
     color: '#fff',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '1rem',
+    fontWeight: 'bold',
+    transition: 'background-color 0.3s ease',
   },
   message: {
-    marginTop: '15px',
-    color: '#0f0',
-    textAlign: 'center',
+    marginTop: '20px',
+    color: '#4CAF50',
+    fontWeight: 'bold',
   },
   linkText: {
-    marginTop: '15px',
-    textAlign: 'center',
+    marginTop: '25px',
+    color: '#aaa',
+    fontSize: '0.95rem',
   },
   link: {
     color: '#39d39f',
