@@ -1,40 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+StockPrediction - Social Network for Stocks
+A full‑stack stock‑portfolio management and social‑networking platform that lets users analyze, predict, and share stock performance — built by students with a passion for stocks and cryptocurrency.
 
-## Getting Started
+This app combines PostgreSQL, Next.js, React, and advanced SQL to deliver seamless stock‑tracking and prediction plus social features like sharing stock lists and writing reviews.
 
-First, run the development server:
+Features
+User Management
+Secure registration and login
 
-```bash
+Each new user automatically receives a base portfolio
+
+Portfolios
+Manage multiple portfolios
+
+Deposit, withdraw, buy, sell, and transfer stocks or cash
+
+Track total value and historical performance
+
+Interactive charts for portfolio growth
+
+Stocks
+Buy and sell individual stocks
+
+Add new daily price data and see real‑time portfolio updates
+
+Price‑history charts (1 W, 1 M, 3 M, 1 Y, 5 Y)
+
+Linear‑regression price predictions for the same ranges
+
+Stock Lists
+Create public, private, or shared lists
+
+Share lists with friends and request reviews
+
+Browse public lists with community reviews
+
+Social Networking
+Send & accept friend requests (mutual friendships)
+
+View and manage friends
+
+Share stock lists for collaborative analysis
+
+Reviews
+Add, edit, and delete reviews on stock lists
+
+Visibility levels: private, shared, public
+
+Performance Analysis & Prediction
+Metrics: Coefficient of Variation (COV), Beta, Covariance & Correlation matrices
+
+Predict prices with linear regression
+
+Compare predicted vs. historical prices in charts
+
+Optimizations
+SQL caching layer for heavy statistics queries
+
+Views & triggers to merge historical and new stock data for live updates
+
+Fully normalized schema (BCNF / 3 NF) for efficiency
+
+Technologies Used
+Layer	Tech
+Database	PostgreSQL (views, triggers, caching)
+Backend	Next.js API routes
+Frontend	React 18
+Charts	Chart.js / react‑chartjs‑2
+Styling	Vanilla CSS & inline styles
+Hosting	Cloud VM (PostgreSQL + Next.js server)
+
+Installation & Setup
+Requirements
+Node.js
+
+PostgreSQL
+
+1 — Clone the repo
+bash
+Copy
+Edit
+git clone https://github.com/HamedDawoudzai/stockprediction.git
+cd stockprediction
+2 — Install dependencies
+bash
+Copy
+Edit
+npm install
+3 — Configure environment
+Set up your PostgreSQL server.
+
+Update the connection string (user myuser, password abc123, VM IP) in /pages/api/* files or in .env.local.
+
+4 — Run the dev server
+bash
+Copy
+Edit
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Open http://localhost:3000 in your browser.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+📊 Dataset
+The app ships with 5 years of daily S&P 500 data and lets users upload additional daily prices.
+All data is unified in SQL views.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Fields
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+Column	Description
+Symbol	Ticker symbol
+Timestamp	Trading day
+Open / High / Low / Close	OHLC prices
+Volume	Shares traded
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+📈 Prediction Model
+A simple linear‑regression model forecasts closing prices from historical data.
+While not intended for professional trading, it demonstrates integrating predictive analytics into a relational app.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+📡 Social Interaction
+Friend management (requests, acceptance, removal)
 
-## Learn More
+Share stock lists privately or publicly
 
-To learn more about Next.js, take a look at the following resources:
+Write and read reviews on shared/public lists
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+Assumptions
+Friendships are mutual
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Stock lists default to private or public, then can be shared individually
 
-## Deploy on Vercel
+Users add price data for existing tickers, not brand‑new tickers
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Every user starts with one default portfolio
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+Supported transactions: deposit, withdraw, buy, sell, transfer
+
+License
+This project is for academic purposes only — none of the code or content constitutes investment advice.
+Feel free to fork or reach out if you’d like to build upon it.
+
+Contact
+Developed by Hamed Dawoudzai
+📧 hamed.dawoudzai@gmail.com
