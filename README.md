@@ -74,10 +74,9 @@ The application combines **PostgreSQL**, **Next.js**, **React**, and advanced SQ
   npm run dev
 5. Open http://localhost:3000 in your browser.
 
-###Dataset
+### Dataset
 The application includes five years of daily S&P 500 data and allows users to upload additional daily prices. All records are unified through SQL views.
 
-###Contact
+### Contact
 Developed by Hamed Dawoudzai
-
 Email: hamed.dawoudzai@gmail.com
