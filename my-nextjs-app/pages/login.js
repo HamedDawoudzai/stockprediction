@@ -37,11 +37,11 @@ export default function LoginPage() {
 
   return (
     <div style={styles.container}>
-      {/* Logo above everything */}
+      {/* Logo */}
       <div style={styles.logoWrapper}>
         <Image
           src="/hd-logo.png"
-          alt="HD Investments"
+          alt="HD Investments Logo"
           width={200}
           height={80}
         />
@@ -76,8 +76,8 @@ export default function LoginPage() {
 
         <p style={styles.linkText}>
           Don’t have an account?{' '}
-          <Link href="/signup" passHref>
-            <span style={styles.link}>Sign Up</span>
+          <Link href="/signup" style={styles.link}>
+            Sign Up
           </Link>
         </p>
       </div>
@@ -111,13 +111,11 @@ const styles = {
     color: '#fff',
     fontSize: '2.5rem',
     marginBottom: '10px',
-    // inherits cursive font from globals.css
   },
   subtitle: {
     color: '#999',
     fontSize: '1.5rem',
     marginBottom: '30px',
-    // inherits cursive font from globals.css
   },
   form: {
     display: 'flex',
