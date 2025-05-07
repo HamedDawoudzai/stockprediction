@@ -79,4 +79,5 @@ The application includes five years of daily S&P 500 data and allows users to up
 
 ### Contact
 Developed by Hamed Dawoudzai
+
 Email: hamed.dawoudzai@gmail.com
