@@ -19,7 +19,7 @@ The application combines **PostgreSQL**, **Next.js**, **React**, and advanced SQ
 ### Stocks
 - Buy and sell individual stocks.  
 - Add new daily price data and see real‑time portfolio updates.  
-- Price‑history charts (1 W, 1 M, 3 M, 1 Y, 5 Y).  
+- Outputted graphs representing historical prices of stocks for the following time frames, as well predicted future stock prices for the following time frames (1 W, 1 M, 3 M, 1 Y, 5 Y).  
 - Linear‑regression price predictions for the same ranges.
 
 ### Stock Lists
