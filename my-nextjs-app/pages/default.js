@@ -25,6 +25,11 @@ export default function DefaultPage() {
           <button style={styles.button}>Sign Up</button>
         </Link>
       </div>
+
+      <footer style={styles.footer}>
+        <p style={styles.footerText}>© 2026 HD Investments. All rights reserved.</p>
+        <p style={styles.footerSubtext}>Your trusted partner in stock trading</p>
+      </footer>
     </div>
   );
 }
@@ -61,5 +66,19 @@ const styles = {
     fontSize: '1rem',
     fontWeight: 'bold',
     transition: 'background-color 0.3s ease',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: '30px',
+    textAlign: 'center',
+  },
+  footerText: {
+    color: '#666',
+    fontSize: '0.9rem',
+    marginBottom: '5px',
+  },
+  footerSubtext: {
+    color: '#444',
+    fontSize: '0.8rem',
   },
 };
