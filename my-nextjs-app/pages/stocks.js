@@ -218,6 +218,11 @@ const styles = {
     color: '#fff',
     fontFamily: '"Playfair Display", cursive',
     fontSize: '1.1rem',
+    transition: 'background-color 0.2s ease, padding-left 0.2s ease',
+  },
+  sideNavItemHover: {
+    backgroundColor: '#1a1a1a',
+    paddingLeft: '18px',
   },
   logoutButton: {
     backgroundColor: 'red',

@@ -27,3 +27,17 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.nav-item:hover {
+  background-color: #1a1a1a;
+  padding-left: 18px;
+}
+
+.btn-primary:hover {
+  background-color: #2eb885;
+  transform: translateY(-1px);
+}
+
+.btn-danger:hover {
+  background-color: #cc0000;
+}
