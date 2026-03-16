@@ -13,6 +13,7 @@ function formatDate(timestamp) {
 export default function StocksPage() {
   const [stocks, setStocks] = useState([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStock, setBuyStock] = useState(null);
   const [buyDollarAmount, setBuyDollarAmount] = useState('');
@@ -21,6 +22,7 @@ export default function StocksPage() {
 
   useEffect(() => {
     const fetchStocks = async () => {
+      setLoading(true);
       try {
         const res = await fetch('/api/stocks');
         if (res.ok) {
@@ -33,6 +35,8 @@ export default function StocksPage() {
       } catch (err) {
         console.error('Error fetching stocks:', err);
         setError('An unexpected error occurred.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchStocks();
@@ -121,7 +125,9 @@ export default function StocksPage() {
       <main style={styles.mainContent}>
         <h1 style={styles.heading}>Stocks Information</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        {stocks.length === 0 ? (
+        {loading ? (
+          <p style={styles.loadingText}>Loading stocks...</p>
+        ) : stocks.length === 0 ? (
           <p>No stock data available.</p>
         ) : (
           <table style={styles.table}>
@@ -231,6 +237,12 @@ const styles = {
     fontSize: '2rem',
     fontFamily: '"Times New Roman", serif',
     marginBottom: '20px',
+  },
+  loadingText: {
+    fontSize: '1.2rem',
+    color: '#39d39f',
+    textAlign: 'center',
+    padding: '40px',
   },
   table: {
     width: '100%',
