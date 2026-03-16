@@ -42,6 +42,16 @@ export default function StocksPage() {
     fetchStocks();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showBuyModal) {
+        setShowBuyModal(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showBuyModal]);
+
   const handleLogout = () => {
     localStorage.clear();
     router.push('/login');
