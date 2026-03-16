@@ -155,8 +155,10 @@ export default function PortfolioPage() {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
-    router.push('/login');
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.clear();
+      router.push('/login');
+    }
   };
 
   const totalStockValue = portfolioStocks
