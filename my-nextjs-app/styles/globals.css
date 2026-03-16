@@ -86,3 +86,12 @@ input:focus, select:focus, textarea:focus {
 table tbody tr:hover {
   background-color: rgba(57, 211, 159, 0.1);
 }
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
