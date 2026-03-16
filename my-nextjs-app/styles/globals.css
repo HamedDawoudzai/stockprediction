@@ -95,3 +95,14 @@ button:disabled {
 button:not(:disabled):active {
   transform: scale(0.98);
 }
+
+@media (max-width: 768px) {
+  .side-nav {
+    width: 200px;
+    font-size: 0.9rem;
+  }
+  
+  .main-content {
+    padding: 1rem;
+  }
+}
