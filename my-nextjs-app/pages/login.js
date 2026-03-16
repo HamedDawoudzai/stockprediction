@@ -110,6 +110,7 @@ const styles = {
     width: '100%',
     maxWidth: '400px',
     textAlign: 'center',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
   },
   title: {
     color: '#fff',
