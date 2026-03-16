@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 export default function FriendsPage() {
@@ -173,6 +174,9 @@ export default function FriendsPage() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+      <Head>
+        <title>Friends | HD Investments</title>
+      </Head>
       <nav style={styles.sideNav}>
         <div>
           <Link href="/portfolio" passHref><div style={styles.sideNavItem}>Portfolio</div></Link>

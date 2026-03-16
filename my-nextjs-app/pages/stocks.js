@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 function formatDate(timestamp) {
@@ -116,6 +117,9 @@ export default function StocksPage() {
 
   return (
     <div style={styles.container}>
+      <Head>
+        <title>Stocks | HD Investments</title>
+      </Head>
       {/* Sidebar Navigation */}
       <nav style={styles.sideNav}>
         <div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 export default function Transactions() {
@@ -40,6 +41,9 @@ export default function Transactions() {
 
   return (
     <div style={styles.container}>
+      <Head>
+        <title>Transactions | HD Investments</title>
+      </Head>
       {/* Side Navigation */}
       <nav style={styles.sideNav}>
         <div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 let debounceTimer = null;
@@ -356,6 +357,9 @@ export default function PortfolioPage() {
 
   return (
     <div style={{ backgroundColor: '#0b0b0b', color: '#fff', minHeight: '100vh', display: 'flex'}}>
+      <Head>
+        <title>Portfolio | HD Investments</title>
+      </Head>
       {/* Side Nav */}
       <nav style={{ width: '250px', backgroundColor: '#111', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
