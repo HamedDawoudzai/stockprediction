@@ -76,3 +76,9 @@ body {
   margin: 10px 0;
   font-size: 0.95rem;
 }
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #39d39f;
+  box-shadow: 0 0 0 2px rgba(57, 211, 159, 0.2);
+}
