@@ -59,6 +59,8 @@ export default function LoginPage() {
             onChange={(e) => setUsername(e.target.value)}
             style={styles.input}
             placeholder="Username"
+            aria-label="Username"
+            autoComplete="username"
           />
           <input
             type="password"
@@ -66,6 +68,8 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             style={styles.input}
             placeholder="Password"
+            aria-label="Password"
+            autoComplete="current-password"
           />
           <button type="submit" style={styles.button}>
             Login

@@ -59,6 +59,8 @@ export default function SignupPage() {
             onChange={(e) => setUsername(e.target.value)}
             style={styles.input}
             placeholder="Choose a username"
+            aria-label="Username"
+            autoComplete="username"
           />
           <input
             type="password"
@@ -66,6 +68,8 @@ export default function SignupPage() {
             onChange={(e) => setPassword(e.target.value)}
             style={styles.input}
             placeholder="Create a password"
+            aria-label="Password"
+            autoComplete="new-password"
           />
           <input
             type="text"
@@ -73,6 +77,8 @@ export default function SignupPage() {
             onChange={(e) => setFirstName(e.target.value)}
             style={styles.input}
             placeholder="Your first name"
+            aria-label="First name"
+            autoComplete="given-name"
           />
           <input
             type="text"
@@ -80,6 +86,8 @@ export default function SignupPage() {
             onChange={(e) => setLastName(e.target.value)}
             style={styles.input}
             placeholder="Your last name"
+            aria-label="Last name"
+            autoComplete="family-name"
           />
 
           <button type="submit" style={styles.button}>
