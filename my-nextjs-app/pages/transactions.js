@@ -214,5 +214,10 @@ const styles = {
   noTransactions: {
     color: '#aaa',
     fontFamily: '"Playfair Display", cursive',
+    textAlign: 'center',
+    padding: '40px 20px',
+    backgroundColor: '#1a1a1a',
+    borderRadius: '8px',
+    marginTop: '20px',
   },
 };
